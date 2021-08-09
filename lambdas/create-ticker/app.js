@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
-const db_connector = require('../utils/db-client.js');
 const { v4: uuidv4 } = require('uuid');
+const TickerTableName = process.env.TICKER_TABLE
 
 // TODO: move to utils / shared location
 let dynamoDbClient;
@@ -15,25 +15,25 @@ const makeClient = () => {
     console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB.DocumentClient(options);
     return dynamoDbClient;
-}
-
+};
+const dbClient = makeClient()
 // module.exports = {
 //     connect: () => dynamoDbClient || makeClient()
 // }
 
-exports.putTickerHandler = async (event, context) => {
+let response;
+exports.handler = async (event, context) => {
     try {
-        db_doc_client = db_connector.connect();
         var params = {
-            TableName: 'TickerTable',
+            TableName: TickerTableName,
             Item: {
                 'id': uuidv4(),
-                'Name': 'ETC-GBP'
+                'name': 'ETC-GBP'
             }
         };
         console.log(`Putting item in DynamoDB table ${params.TableName}`);
         try {
-            const data = await db_doc_client.put(params).promise();
+            const data = await dbClient.put(params).promise();
             console.log('Success:', data);
         } catch (err) {
             console.log('Failure:', err.message, err.stack);
@@ -43,10 +43,10 @@ exports.putTickerHandler = async (event, context) => {
             'body': JSON.stringify({
                 message: `Ticker created with id=${params.Item.id} Name=${params.Item.Name}`
             })
-        }
+        };
     } catch (err) {
         console.log(err);
         return err;
     }
-    return response
+    return response;
 };
