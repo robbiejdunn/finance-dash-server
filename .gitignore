@@ -132,6 +132,8 @@ $RECYCLE.BIN/
 .aws-sam
 lib/*.js
 lib/*.d.ts
+bin/*.js
+bin/*.ts
 
 # CDK
 cdk.out
