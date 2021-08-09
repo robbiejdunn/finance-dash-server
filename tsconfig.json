@@ -3,7 +3,7 @@
         "target": "ES2018",
         "module": "commonjs",
         "lib": [
-        "es2018"
+            "es2018"
         ],
         "declaration": true,
         "strict": true,
@@ -20,7 +20,7 @@
         "experimentalDecorators": true,
         "strictPropertyInitialization": false,
         "typeRoots": [
-        "./node_modules/@types"
+            "./node_modules/@types"
         ]
     },
     "exclude": [
@@ -28,4 +28,3 @@
         "cdk.out"
     ]
 }
-  
