@@ -1,13 +1,14 @@
 {
-  "name": "hello_world",
-  "version": "1.0.0",
+  "name": "finance-dash-lambda",
+  "version": "0.1.0",
   "description": "hello world sample for NodeJS",
   "main": "app.js",
-  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
-  "author": "SAM CLI",
+  "repository": "https://github.com/robbiejdunn/finance-dash-server",
+  "author": "Robbie Dunn",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1"
+    "axios": "^0.21.1",
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "test": "mocha tests/unit/"
