@@ -2,28 +2,37 @@
 
 AWS SAM template & lambda nodejs images.
 
+## Requirements
+
+- Nodejs
+- Docker
+- sam-beta-cdk
+- cdklocal
+
 ## Usage
 
 ### Development
 
-Create docker network for local lambda development:
+Run localstack docer-compose:
 
-`docker network create lambda-local`
+`docker-compose up`
 
-Run local dynamodb docker container on the created network:
+Bootstrap cdklocal:
 
-`docker run --rm -p 8000:8000 --name dynamodblocal --network lambda-local amazon/dynamodb-local:latest`
+`cdklocal bootstrap`
 
-Create the dynamodb table:
+Deply CDK stack locally:
 
-`aws dynamodb create-table --endpoint-url http://localhost:8000 --table-name TickerTable --attribute-definitions AttributeName=id,AttributeType=S --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --key-schema AttributeName=id,KeyType=HASH`
+`LAMBDA_MOUNT_CODE=true cdklocal deploy`
 
-Use `nodemon` npm package to watch for file changes to support hot reloading (until docker volumes are added!). Run from project root:
+Use `awslocal` CLI commands or web requests to interact with the services.
 
-`nodemon --exec sam build`
+### Deployment
 
-Start local lambda development containers:
+Build and synth lambdas:
 
-`sam local start-api --debug --docker-network lambda-local`
+`sam-beta-cdk build`
 
-Go to <http://127.0.0.1:3000/hello>. Reload the page to see code changes.
+Deploy:
+
+`cdk deploy`

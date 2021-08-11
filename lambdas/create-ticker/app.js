@@ -8,9 +8,8 @@ const makeClient = () => {
     const options = {
         region: 'eu-west-2'
     };
-    if(process.env.AWS_SAM_LOCAL) {
-        console.log('AWS_SAM_LOCAL env var set. using local dynamodb endpoint');
-        options.endpoint = 'http://dynamodblocal:8000';
+    if(process.env.LOCALSTACK_HOSTNAME) {
+        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:4566`;
     }
     console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB.DocumentClient(options);
@@ -41,7 +40,7 @@ exports.handler = async (event, context) => {
         response = {
             'statusCode': 200,
             'body': JSON.stringify({
-                message: `Ticker created with id=${params.Item.id} Name=${params.Item.Name}`
+                message: `Ticker created with id=${params.Item.id} Name=${params.Item.name}`
             })
         };
     } catch (err) {
