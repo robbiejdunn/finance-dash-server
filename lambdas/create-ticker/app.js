@@ -9,7 +9,7 @@ const makeClient = () => {
         region: 'eu-west-2'
     };
     if(process.env.LOCALSTACK_HOSTNAME) {
-        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:4566`;
+        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
     console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB.DocumentClient(options);
