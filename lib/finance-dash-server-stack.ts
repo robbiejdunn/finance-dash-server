@@ -2,7 +2,7 @@ import { LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket } from '@aws-cdk/aws-s3';
-import { App, CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -47,21 +47,12 @@ export class FinanceDashServerStack extends Stack {
         const listTickersIntegration = new LambdaIntegration(listTickersFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
-            restApiName: 'Finance Dash Service'
+            restApiName: 'Finance Dash Service',
+            endpointExportName: 'FinanceDashAPIEndpoint'
         });
 
         const tickersApiResource = api.root.addResource('Tickers');
         tickersApiResource.addMethod('GET', listTickersIntegration);
-
-        new CfnOutput(this, 'finance-dash-api-export', {
-            exportName: 'finance-dash-api-id',
-            value: api.restApiId,
-        });
-
-        new CfnOutput(this, 'finance-dash-api-tickers-export' {
-            exportName: 'finance-dash-api-tickers-id',
-            value: tickersApiResource.resourceId,
-        });
     }
 
     private getLambdaCode(local_fp: string, asset_p: string): Code {

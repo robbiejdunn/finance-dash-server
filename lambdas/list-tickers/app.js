@@ -27,9 +27,16 @@ exports.handler = async (event, context) => {
         };
         console.log(`Scanning dynamodb table ${params.TableName}`);
         const data = await dbClient.scan(params).promise();
+        console.log('Returning response with COR headers');
         response = {
-            'statusCode': 200,
-            'body': JSON.stringify(data)
+            statusCode: 200,
+            headers: {
+                
+                'Access-Control-Allow-Headers' : 'Content-Type',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS,GET'
+            },
+            body: JSON.stringify(data)
         };
     } catch (err) {
         console.log(err);
