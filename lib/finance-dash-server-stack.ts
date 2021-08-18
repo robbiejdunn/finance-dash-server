@@ -2,7 +2,7 @@ import { LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket } from '@aws-cdk/aws-s3';
-import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { App, CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -20,7 +20,6 @@ export class FinanceDashServerStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
         });
         
-        // Put ticker lambda function
         const createTickerFunction = new Function(this, 'CreateTickerFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
@@ -31,16 +30,38 @@ export class FinanceDashServerStack extends Stack {
             }
         });
 
-        tickerTable.grantWriteData(createTickerFunction);
-
-        const createTickerIntegration = new LambdaIntegration(createTickerFunction);
-
-        const api = new RestApi(this, 'TickersApi', {
-            restApiName: 'Tickers Service'
+        const listTickersFunction = new Function(this, 'ListTickersFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 'lambdas/list-tickers'),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKER_TABLE': tickerTable.tableName
+            }
         });
 
-        const tickers = api.root.addResource('Tickers');
-        tickers.addMethod('GET', createTickerIntegration);
+        tickerTable.grantWriteData(createTickerFunction);
+        tickerTable.grantReadData(listTickersFunction);
+
+        const createTickerIntegration = new LambdaIntegration(createTickerFunction);
+        const listTickersIntegration = new LambdaIntegration(listTickersFunction);
+
+        const api = new RestApi(this, 'FinanceDashAPI', {
+            restApiName: 'Finance Dash Service'
+        });
+
+        const tickersApiResource = api.root.addResource('Tickers');
+        tickersApiResource.addMethod('GET', listTickersIntegration);
+
+        new CfnOutput(this, 'finance-dash-api-export', {
+            exportName: 'finance-dash-api-id',
+            value: api.restApiId,
+        });
+
+        new CfnOutput(this, 'finance-dash-api-tickers-export' {
+            exportName: 'finance-dash-api-tickers-id',
+            value: tickersApiResource.resourceId,
+        });
     }
 
     private getLambdaCode(local_fp: string, asset_p: string): Code {

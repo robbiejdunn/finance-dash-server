@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 const TickerTableName = process.env.TICKER_TABLE
 
 // TODO: move to utils / shared location
@@ -24,24 +23,13 @@ let response;
 exports.handler = async (event, context) => {
     try {
         var params = {
-            TableName: TickerTableName,
-            Item: {
-                'id': uuidv4(),
-                'name': 'ETC-GBP'
-            }
+            TableName: TickerTableName
         };
-        console.log(`Putting item in DynamoDB tables ${params.TableName}`);
-        try {
-            const data = await dbClient.put(params).promise();
-            console.log('Success:', data);
-        } catch (err) {
-            console.log('Failure:', err.message, err.stack);
-        }
+        console.log(`Scanning dynamodb table ${params.TableName}`);
+        const data = await dbClient.scan(params).promise();
         response = {
             'statusCode': 200,
-            'body': JSON.stringify({
-                message: `Ticker created with id=${params.Item.id} Name=${params.Item.name}`
-            })
+            'body': JSON.stringify(data)
         };
     } catch (err) {
         console.log(err);

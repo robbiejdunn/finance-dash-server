@@ -36,3 +36,13 @@ Build and synth lambdas:
 Deploy:
 
 `cdk deploy`
+
+### Getting localstack API gateway URL
+
+TODO: make this easier (env vars?)
+
+With localstack running get the API ID:
+
+`awslocal apigateway get-rest-apis`
+
+The URL for local testing will be in the form localhost:4566/restapis/<api id>/prod/_user_requests_/Tickers
