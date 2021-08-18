@@ -1,4 +1,4 @@
-import { LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
+import { Cors, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket } from '@aws-cdk/aws-s3';
@@ -48,11 +48,16 @@ export class FinanceDashServerStack extends Stack {
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
-            endpointExportName: 'FinanceDashAPIEndpoint'
+            endpointExportName: 'FinanceDashAPIEndpoint',
+            defaultCorsPreflightOptions: {
+                allowOrigins: Cors.ALL_ORIGINS,
+                allowMethods: Cors.ALL_METHODS
+            },
         });
 
         const tickersApiResource = api.root.addResource('Tickers');
         tickersApiResource.addMethod('GET', listTickersIntegration);
+        tickersApiResource.addMethod('POST', createTickerIntegration);
     }
 
     private getLambdaCode(local_fp: string, asset_p: string): Code {

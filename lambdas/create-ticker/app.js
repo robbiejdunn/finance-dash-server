@@ -23,25 +23,27 @@ const dbClient = makeClient()
 let response;
 exports.handler = async (event, context) => {
     try {
+        request_data = JSON.parse(event.body);
+        console.log('Received event:', JSON.stringify(event, null, 2));
         var params = {
             TableName: TickerTableName,
             Item: {
                 'id': uuidv4(),
-                'name': 'ETC-GBP'
+                'name': request_data.name,
+                'symbol':  request_data.symbol,
             }
         };
-        console.log(`Putting item in DynamoDB tables ${params.TableName}`);
-        try {
-            const data = await dbClient.put(params).promise();
-            console.log('Success:', data);
-        } catch (err) {
-            console.log('Failure:', err.message, err.stack);
-        }
+        console.log(params);
+        console.log(`Putting item in DynamoDB table ${params.TableName}`);
+        await dbClient.put(params).promise();
         response = {
-            'statusCode': 200,
-            'body': JSON.stringify({
-                message: `Ticker created with id=${params.Item.id} Name=${params.Item.name}`
-            })
+            statusCode: 200,
+            headers: {        
+                'Access-Control-Allow-Headers' : 'Content-Type',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST'
+            },
+            body: `Ticker created with ID=${params.Item.id}`
         };
     } catch (err) {
         console.log(err);
