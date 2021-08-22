@@ -1,8 +1,7 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const CoinGecko = require('coingecko-api');
-const lodash = require('lodash');
-const TickerTableName = process.env.TICKER_TABLE;
+const TickerPriceTableName = process.env.TICKER_PRICE_TABLE_NAME;
 
 // TODO: move to utils / shared location
 let dynamoDbClient;
@@ -24,36 +23,24 @@ const CoinGeckoClient = new CoinGecko();
 let response;
 exports.handler = async (event, context) => {
     try {
-        request_data = JSON.parse(event.body);
+        requestData = JSON.parse(event.body);
         console.log('Received event:', JSON.stringify(event, null, 2));
-        let data = await CoinGeckoClient.coins.list();
-        let dataCoinList = data['data'];
-        let pickedCrypto = lodash.filter(dataCoinList, x => x['symbol'] === request_data.symbol.toLowerCase());
-        let pickedCryptoId = pickedCrypto[0]['id'];
 
-        let coinData = await CoinGeckoClient.coins.fetch(pickedCryptoId, {
-            localization: false,
-            tickers: false,
-            market_data: false,
-            community_data: false,
-            developer_data: false,
+        let currentPriceResponse = await CoinGeckoClient.simple.price({
+            ids: requestData.coinId,
+            vs_currencies: 'gbp'
         });
-        let coinDataFetch = coinData['data'];
-        
-        let tickerName = coinDataFetch['name']
-        console.log(coinData);
+        let currentPrice = currentPriceResponse['data'][requestData.coinId]['gbp'];
 
         var params = {
-            TableName: TickerTableName,
+            TableName: TickerPriceTableName,
             Item: {
                 'id': uuidv4(),
-                'name': coinDataFetch['name'],
-                'symbol':  request_data.symbol,
-                'description': coinDataFetch['description']['en'],
-                'imageUrl': coinDataFetch['image']['large'],
-                'coinId': pickedCryptoId,
+                'tickerId': requestData.tickerId,
+                'datetime': new Date().toISOString(),
+                'price': currentPrice
             }
-        };
+        }
         console.log(params);
         console.log(`Putting item in DynamoDB table ${params.TableName}`);
         await dbClient.put(params).promise();
@@ -64,7 +51,7 @@ exports.handler = async (event, context) => {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'OPTIONS,POST'
             },
-            body: `Ticker created with ID=${params.Item.id}`
+            body: `Ticker price created with ID=${params.Item.id}`
         };
     } catch (err) {
         console.log(err);

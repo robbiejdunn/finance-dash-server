@@ -21,6 +21,16 @@ export class FinanceDashServerStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
         });
 
+        const tickerPriceTable = new Table(this, 'TickerPriceTable', {
+            // partitionKey: {name: 'tickerId', type: AttributeType.STRING},
+            partitionKey: {name: 'id', type: AttributeType.STRING},
+            removalPolicy: RemovalPolicy.DESTROY
+        });
+        tickerPriceTable.addGlobalSecondaryIndex({
+            indexName: 'TickerPricesByTickerIDIndex',
+            partitionKey: {name: 'tickerId', type: AttributeType.STRING},
+        });
+
         const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
         
         const createTickerFunction = new Function(this, 'CreateTickerFunction', {
@@ -53,13 +63,37 @@ export class FinanceDashServerStack extends Stack {
             }
         });
 
+        const createTickerPriceFunction = new Function(this, 'CreateTickerPriceFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-price', 'lambdas/create-ticker-price', localBucket),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
+            }
+        })
+
+        const getTickerPricesByTickerIdFunction = new Function(this, 'GetTickerPricesByTickerIdFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker-prices-by-ticker-id', 'lambdas/get-ticker-prices-by-ticker-id', localBucket),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
+            }
+        })
+
         tickerTable.grantWriteData(createTickerFunction);
         tickerTable.grantReadData(listTickersFunction);
         tickerTable.grantReadData(getTickerFunction);
+        tickerPriceTable.grantWriteData(createTickerPriceFunction);
+        tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
 
         const createTickerIntegration = new LambdaIntegration(createTickerFunction);
         const listTickersIntegration = new LambdaIntegration(listTickersFunction);
         const getTickerIntegration = new LambdaIntegration(getTickerFunction);
+        const createTickerPriceIntegration = new LambdaIntegration(createTickerPriceFunction);
+        const getTickerPricesByTickerIdIntegration = new LambdaIntegration(getTickerPricesByTickerIdFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -76,6 +110,10 @@ export class FinanceDashServerStack extends Stack {
 
         const tickersListApiResource = tickersApiResource.addResource('list');
         tickersListApiResource.addMethod('GET', listTickersIntegration);
+
+        const tickersPriceApiResource = api.root.addResource('tickersPrice');
+        tickersPriceApiResource.addMethod('POST', createTickerPriceIntegration);
+        tickersPriceApiResource.addMethod('GET', getTickerPricesByTickerIdIntegration);
     }
 
     private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {
