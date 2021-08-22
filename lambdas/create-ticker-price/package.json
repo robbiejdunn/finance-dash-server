@@ -1,5 +1,5 @@
 {
-    "name": "finance-dash-server-create-ticker",
+    "name": "finance-dash-server-create-ticker-price",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -10,7 +10,6 @@
     "dependencies": {
         "aws-sdk": "*",
         "coingecko-api": "^1.0.10",
-        "lodash": "^4.17.21",
         "uuid": "*"
     }
 }
