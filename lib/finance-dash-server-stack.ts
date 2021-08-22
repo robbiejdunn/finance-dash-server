@@ -1,8 +1,9 @@
 import { Cors, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
-import { Bucket } from '@aws-cdk/aws-s3';
+import { Bucket, IBucket } from '@aws-cdk/aws-s3';
 import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { strict } from 'assert';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -11,7 +12,7 @@ export class FinanceDashServerStack extends Stack {
         // Ticker DDB table
         const tickerTable = new Table(this, 'TickerTable', {
             partitionKey: {name: 'id', type: AttributeType.STRING},
-            sortKey: {name: 'name', type: AttributeType.STRING},
+            // sortKey: {name: 'name', type: AttributeType.STRING},
             /**
             *  The default removal policy is RETAIN, which means that cdk destroy will not attempt to delete
             * the new table, and it will remain in your account until manually deleted. By setting the policy to
@@ -19,11 +20,13 @@ export class FinanceDashServerStack extends Stack {
             */
             removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
         });
+
+        const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
         
         const createTickerFunction = new Function(this, 'CreateTickerFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker', 'lambdas/create-ticker'),
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker', 'lambdas/create-ticker', localBucket),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName
@@ -33,7 +36,17 @@ export class FinanceDashServerStack extends Stack {
         const listTickersFunction = new Function(this, 'ListTickersFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 'lambdas/list-tickers'),
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 'lambdas/list-tickers', localBucket),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKER_TABLE': tickerTable.tableName
+            }
+        });
+
+        const getTickerFunction = new Function(this, 'GetTickerFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker', 'lambdas/get-ticker', localBucket),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName
@@ -42,9 +55,11 @@ export class FinanceDashServerStack extends Stack {
 
         tickerTable.grantWriteData(createTickerFunction);
         tickerTable.grantReadData(listTickersFunction);
+        tickerTable.grantReadData(getTickerFunction);
 
         const createTickerIntegration = new LambdaIntegration(createTickerFunction);
         const listTickersIntegration = new LambdaIntegration(listTickersFunction);
+        const getTickerIntegration = new LambdaIntegration(getTickerFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -55,15 +70,18 @@ export class FinanceDashServerStack extends Stack {
             },
         });
 
-        const tickersApiResource = api.root.addResource('Tickers');
-        tickersApiResource.addMethod('GET', listTickersIntegration);
+        const tickersApiResource = api.root.addResource('tickers');
+        tickersApiResource.addMethod('GET', getTickerIntegration);
         tickersApiResource.addMethod('POST', createTickerIntegration);
+
+        const tickersListApiResource = tickersApiResource.addResource('list');
+        tickersListApiResource.addMethod('GET', listTickersIntegration);
     }
 
-    private getLambdaCode(local_fp: string, asset_p: string): Code {
-        if(process.env.LOCALSTACK_HOSTNAME) {
+    private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {
+        if(process.env['_'] && process.env['_'].split('/').pop() === 'cdklocal') {
             console.log(`Using local mount with fp ${local_fp}`);
-            return Code.fromBucket(Bucket.fromBucketName(this, 's3local', '__local__'), local_fp);
+            return Code.fromBucket(localBucket, local_fp);
         } else {
             console.log('Using CDK asset');
             return Code.fromAsset(asset_p);
