@@ -1,5 +1,7 @@
 import { Cors, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
+import { Rule, Schedule } from '@aws-cdk/aws-events';
+import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket, IBucket } from '@aws-cdk/aws-s3';
 import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
@@ -26,9 +28,11 @@ export class FinanceDashServerStack extends Stack {
             partitionKey: {name: 'id', type: AttributeType.STRING},
             removalPolicy: RemovalPolicy.DESTROY
         });
+        
         tickerPriceTable.addGlobalSecondaryIndex({
             indexName: 'TickerPricesByTickerIDIndex',
             partitionKey: {name: 'tickerId', type: AttributeType.STRING},
+            sortKey: {name: 'datetime', type: AttributeType.STRING},
         });
 
         const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
@@ -81,13 +85,33 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
             }
+        });
+
+        const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 'lambdas/create-ticker-prices-cron', localBucket),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKER_TABLE': tickerTable.tableName,
+                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
+            }
         })
 
         tickerTable.grantWriteData(createTickerFunction);
         tickerTable.grantReadData(listTickersFunction);
         tickerTable.grantReadData(getTickerFunction);
+        tickerTable.grantReadData(createTickerPricesCronFunction);
         tickerPriceTable.grantWriteData(createTickerPriceFunction);
         tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
+        tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
+
+        const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
+
+        new Rule(this, 'CreateTickerPricesCronRule', {
+            schedule: Schedule.cron({minute: '0/10'}),
+            targets: [createTickerPricesCronTarget]
+        });
 
         const createTickerIntegration = new LambdaIntegration(createTickerFunction);
         const listTickersIntegration = new LambdaIntegration(listTickersFunction);
@@ -118,10 +142,8 @@ export class FinanceDashServerStack extends Stack {
 
     private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {
         if(process.env['_'] && process.env['_'].split('/').pop() === 'cdklocal') {
-            console.log(`Using local mount with fp ${local_fp}`);
             return Code.fromBucket(localBucket, local_fp);
         } else {
-            console.log('Using CDK asset');
             return Code.fromAsset(asset_p);
         }
     }
