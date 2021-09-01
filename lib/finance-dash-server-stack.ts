@@ -35,12 +35,22 @@ export class FinanceDashServerStack extends Stack {
             sortKey: {name: 'datetime', type: AttributeType.STRING},
         });
 
+        const holdingsTable = new Table(this, 'HoldingsTable', {
+            partitionKey: {name: 'id', type: AttributeType.STRING},
+            removalPolicy: RemovalPolicy.DESTROY,
+        })
+
+        // this is for mounting code when running with localstack
         const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
         
         const createTickerFunction = new Function(this, 'CreateTickerFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker', 'lambdas/create-ticker', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker', 
+                'lambdas/create-ticker', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName
@@ -50,27 +60,41 @@ export class FinanceDashServerStack extends Stack {
         const listTickersFunction = new Function(this, 'ListTickersFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 'lambdas/list-tickers', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 
+                'lambdas/list-tickers', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName
             }
         });
 
-        const getTickerFunction = new Function(this, 'GetTickerFunction', {
+        const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker', 'lambdas/get-ticker', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-holding', 
+                'lambdas/get-holding', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
-                'TICKER_TABLE': tickerTable.tableName
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                'TICKERS_TABLE_NAME': tickerTable.tableName,
+                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName
             }
         });
 
         const createTickerPriceFunction = new Function(this, 'CreateTickerPriceFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-price', 'lambdas/create-ticker-price', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-price', 
+                'lambdas/create-ticker-price', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
@@ -80,7 +104,11 @@ export class FinanceDashServerStack extends Stack {
         const getTickerPricesByTickerIdFunction = new Function(this, 'GetTickerPricesByTickerIdFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker-prices-by-ticker-id', 'lambdas/get-ticker-prices-by-ticker-id', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker-prices-by-ticker-id', 
+                'lambdas/get-ticker-prices-by-ticker-id', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
@@ -90,21 +118,59 @@ export class FinanceDashServerStack extends Stack {
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode('/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 'lambdas/create-ticker-prices-cron', localBucket),
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 
+                'lambdas/create-ticker-prices-cron', 
+                localBucket
+            ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName,
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
             }
-        })
+        });
+
+        const createHoldingFunction = new Function(this, 'CreateHoldingFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-holding', 
+                'lambdas/create-holding', 
+                localBucket
+            ),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TICKERS_TABLE_NAME': tickerTable.tableName,
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+            }
+        });
+
+        const listHoldingsFunction = new Function(this, 'ListHoldingsFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/list-holdings', 
+                'lambdas/list-holdings', 
+                localBucket
+            ),
+            timeout: Duration.seconds(10),
+            environment: {
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+            }
+        }) 
 
         tickerTable.grantWriteData(createTickerFunction);
+        tickerTable.grantWriteData(createHoldingFunction);
         tickerTable.grantReadData(listTickersFunction);
-        tickerTable.grantReadData(getTickerFunction);
         tickerTable.grantReadData(createTickerPricesCronFunction);
+        tickerTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantWriteData(createTickerPriceFunction);
         tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
+        tickerPriceTable.grantReadData(getHoldingFunction);
+        holdingsTable.grantWriteData(createHoldingFunction);
+        holdingsTable.grantReadData(listHoldingsFunction);
+        holdingsTable.grantReadData(getHoldingFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
@@ -115,9 +181,11 @@ export class FinanceDashServerStack extends Stack {
 
         const createTickerIntegration = new LambdaIntegration(createTickerFunction);
         const listTickersIntegration = new LambdaIntegration(listTickersFunction);
-        const getTickerIntegration = new LambdaIntegration(getTickerFunction);
         const createTickerPriceIntegration = new LambdaIntegration(createTickerPriceFunction);
         const getTickerPricesByTickerIdIntegration = new LambdaIntegration(getTickerPricesByTickerIdFunction);
+        const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
+        const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
+        const getHoldingIntegration = new LambdaIntegration(getHoldingFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -129,7 +197,6 @@ export class FinanceDashServerStack extends Stack {
         });
 
         const tickersApiResource = api.root.addResource('tickers');
-        tickersApiResource.addMethod('GET', getTickerIntegration);
         tickersApiResource.addMethod('POST', createTickerIntegration);
 
         const tickersListApiResource = tickersApiResource.addResource('list');
@@ -138,6 +205,13 @@ export class FinanceDashServerStack extends Stack {
         const tickersPriceApiResource = api.root.addResource('tickersPrice');
         tickersPriceApiResource.addMethod('POST', createTickerPriceIntegration);
         tickersPriceApiResource.addMethod('GET', getTickerPricesByTickerIdIntegration);
+
+        const holdingsApiResource = api.root.addResource('holdings');
+        holdingsApiResource.addMethod('POST', createHoldingIntegration);
+        holdingsApiResource.addMethod('GET', getHoldingIntegration);
+
+        const holdingsListApiResource = holdingsApiResource.addResource('list');
+        holdingsListApiResource.addMethod('GET', listHoldingsIntegration);
     }
 
     private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {
