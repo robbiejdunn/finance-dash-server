@@ -10,14 +10,10 @@ const makeClient = () => {
     if(process.env.LOCALSTACK_HOSTNAME) {
         options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
-    console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB.DocumentClient(options);
     return dynamoDbClient;
 };
 const dbClient = makeClient()
-// module.exports = {
-//     connect: () => dynamoDbClient || makeClient()
-// }
 
 let response;
 exports.handler = async (event, context) => {
@@ -25,9 +21,7 @@ exports.handler = async (event, context) => {
         var params = {
             TableName: TickerTableName
         };
-        console.log(`Scanning dynamodb table ${params.TableName}`);
         const data = await dbClient.scan(params).promise();
-        console.log('Returning response with COR headers');
         response = {
             statusCode: 200,
             headers: {

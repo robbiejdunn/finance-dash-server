@@ -1,7 +1,6 @@
 const AWS = require('aws-sdk');
-const TickerTableName = process.env.TICKER_TABLE
+const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
 
-// TODO: move to utils / shared location
 let dynamoDbClient;
 const makeClient = () => {
     const options = {
@@ -10,32 +9,26 @@ const makeClient = () => {
     if(process.env.LOCALSTACK_HOSTNAME) {
         options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
-    console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
-    dynamoDbClient = new AWS.DynamoDB.DocumentClient(options);
+    dynamoDbClient = new AWS.DynamoDB(options);
     return dynamoDbClient;
 };
 const dbClient = makeClient()
-// module.exports = {
-//     connect: () => dynamoDbClient || makeClient()
-// }
 
 let response;
 exports.handler = async (event, context) => {
     try {
-        console.log('Received event:', JSON.stringify(event, null, 2));
-        console.log(event.multiValueQueryStringParameters);
-        console.log(event.multiValueQueryStringParameters.id);
-        console.log(event.multiValueQueryStringParameters.id[0]);
-        var params = {
-            TableName: TickerTableName,
-            Key: {
-                id: event.multiValueQueryStringParameters.id[0]
+        const params = {
+            TableName: HoldingsTableName,
+            ProjectionExpression: 'id, #n, symbol, units, currentPrice',
+            ExpressionAttributeNames: {
+                '#n': 'name'
             }
         };
-        const data = await dbClient.get(params).promise();
+        const data = await dbClient.scan(params).promise();
         response = {
             statusCode: 200,
             headers: {
+                
                 'Access-Control-Allow-Headers' : 'Content-Type',
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'OPTIONS,GET'
