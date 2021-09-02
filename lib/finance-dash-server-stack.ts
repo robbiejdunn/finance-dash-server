@@ -24,7 +24,6 @@ export class FinanceDashServerStack extends Stack {
         });
 
         const tickerPriceTable = new Table(this, 'TickerPriceTable', {
-            // partitionKey: {name: 'tickerId', type: AttributeType.STRING},
             partitionKey: {name: 'id', type: AttributeType.STRING},
             removalPolicy: RemovalPolicy.DESTROY
         });
@@ -32,8 +31,19 @@ export class FinanceDashServerStack extends Stack {
         tickerPriceTable.addGlobalSecondaryIndex({
             indexName: 'TickerPricesByTickerIDIndex',
             partitionKey: {name: 'tickerId', type: AttributeType.STRING},
-            sortKey: {name: 'datetime', type: AttributeType.STRING},
+            sortKey: {name: 'datetime', type: AttributeType.STRING}
         });
+
+        const transactionTable = new Table(this, 'TransactionTable', {
+            partitionKey: {name: 'id', type: AttributeType.STRING},
+            removalPolicy: RemovalPolicy.DESTROY
+        })
+
+        transactionTable.addGlobalSecondaryIndex({
+            indexName: 'TransactionByHoldingIDIndex',
+            partitionKey: {name: 'holdingId', type: AttributeType.STRING},
+            sortKey: {name: 'datetime', type: AttributeType.STRING}
+        })
 
         const holdingsTable = new Table(this, 'HoldingsTable', {
             partitionKey: {name: 'id', type: AttributeType.STRING},
@@ -157,7 +167,22 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName
             }
-        }) 
+        });
+        
+        const createTransactionFunction = new Function(this, 'CreateTransactionFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-transaction', 
+                'lambdas/create-transaction', 
+                localBucket
+            ),
+            timeout: Duration.seconds(10),
+            environment: {
+                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+            }
+        });
 
         tickerTable.grantWriteData(createTickerFunction);
         tickerTable.grantWriteData(createHoldingFunction);
@@ -169,8 +194,10 @@ export class FinanceDashServerStack extends Stack {
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
         tickerPriceTable.grantReadData(getHoldingFunction);
         holdingsTable.grantWriteData(createHoldingFunction);
+        holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
+        transactionTable.grantWriteData(createTransactionFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
@@ -186,6 +213,7 @@ export class FinanceDashServerStack extends Stack {
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
         const getHoldingIntegration = new LambdaIntegration(getHoldingFunction);
+        const createTransactionIntegration = new LambdaIntegration(createTransactionFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -212,6 +240,9 @@ export class FinanceDashServerStack extends Stack {
 
         const holdingsListApiResource = holdingsApiResource.addResource('list');
         holdingsListApiResource.addMethod('GET', listHoldingsIntegration);
+
+        const transactionsApiResource = api.root.addResource('transactions');
+        transactionsApiResource.addMethod('POST', createTransactionIntegration);
     }
 
     private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {

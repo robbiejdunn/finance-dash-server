@@ -61,18 +61,7 @@ exports.handler = async (event, context) => {
             };
             console.log(putParams);
             await dbClient.putItem(putParams).promise();
-            // await dbClient.put(putParams).promise();
         }))
-        // tickers.forEach(e => async )
-
-        // var coinData = await CoinGeckoClient.simple.price({
-        //     ids: tickers.Items[0]['coinId']['S'],
-        //     vs_currencies: 'gbp'
-        // })
-
-        // console.log(coinData);
-
-        // Promise.all(tickers.Items.map((t) => createTickerPrice(t['coinId']['S'], t['id']['S'])));
     } catch (err) {
         console.log(err);
     }

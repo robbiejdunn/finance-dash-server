@@ -14,7 +14,6 @@ const makeClient = () => {
     if(process.env.LOCALSTACK_HOSTNAME) {
         options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
-    console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB(options);
     return dynamoDbClient;
 };
