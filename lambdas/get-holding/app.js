@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
 const TickersTableName = process.env.TICKERS_TABLE_NAME;
 const TickerPricesTableName = process.env.TICKER_PRICES_TABLE_NAME;
+const TransactionsTableName = process.env.TRANSACTIONS_TABLE_NAME;
 
 let dynamoDbClient;
 const makeClient = () => {
@@ -50,10 +51,21 @@ exports.handler = async (event, context) => {
         }
         const tickerPricesGetData = await dbClient.query(params).promise();
 
+        params = {
+            TableName: TransactionsTableName,
+            IndexName: 'TransactionByHoldingIDIndex',
+            ExpressionAttributeValues: {
+                ':h': {S: holdingGetData.Item.id.S}
+            },
+            KeyConditionExpression: 'holdingId = :h'
+        }
+        const transactionsGetData = await dbClient.query(params).promise();
+        
         const responseData = {
             'holding': holdingGetData,
             'ticker': tickerGetData,
-            'tickerPrices': tickerPricesGetData
+            'tickerPrices': tickerPricesGetData,
+            'transactions': transactionsGetData
         }
 
         response = {
