@@ -93,7 +93,8 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
-                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName
+                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
+                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
             }
         });
 
@@ -136,7 +137,9 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(10),
             environment: {
                 'TICKER_TABLE': tickerTable.tableName,
-                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
+                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName,
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                // 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
             }
         });
 
@@ -195,9 +198,11 @@ export class FinanceDashServerStack extends Stack {
         tickerPriceTable.grantReadData(getHoldingFunction);
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
+        holdingsTable.grantWriteData(createTickerPricesCronFunction)
         holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
         transactionTable.grantWriteData(createTransactionFunction);
+        transactionTable.grantReadData(getHoldingFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 

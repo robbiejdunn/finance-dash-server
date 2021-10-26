@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
     try {
         const params = {
             TableName: HoldingsTableName,
-            ProjectionExpression: 'id, #n, symbol, units, currentPrice',
+            ProjectionExpression: 'id, #n, symbol, units, currentPrice, marketValue',
             ExpressionAttributeNames: {
                 '#n': 'name'
             }

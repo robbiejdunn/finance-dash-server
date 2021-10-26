@@ -89,6 +89,18 @@ exports.handler = async (event, context) => {
                 },
                 'tickerId': {
                     S: tickerId
+                },
+                'marketValue': {
+                    N: '0'
+                },
+                'twentyFourHourChange': {
+                    N: '0'
+                },
+                'marketCap': {
+                    N: '0'
+                },
+                'volume': {
+                    N: '0'
                 }
             }
         }

@@ -1,10 +1,11 @@
+const axios = require('axios');
 const AWS = require('aws-sdk');
-const CoinGecko = require('coingecko-api');
 const { v4: uuidv4 } = require('uuid');
 const TickerTableName = process.env.TICKER_TABLE;
 const TickerPriceTableName = process.env.TICKER_PRICE_TABLE_NAME;
+const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
+// const TransactionsTableName = process.env.TRANSACTIONS_TABLE_NAME;
 
-// TODO: move to utils / shared location
 let dynamoDbClient;
 const makeClient = () => {
     const options = {
@@ -13,36 +14,30 @@ const makeClient = () => {
     if(process.env.LOCALSTACK_HOSTNAME) {
         options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
-    console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
     dynamoDbClient = new AWS.DynamoDB(options);
     return dynamoDbClient;
 };
 const dbClient = makeClient()
 
-const CoinGeckoClient = new CoinGecko();
-
-let response;
 exports.handler = async (event, context) => {
     try {
-        console.log('Received event:', JSON.stringify(event, null, 2));
-
-        // get all tickers
-        var scanParams = {
+        let params = {
             TableName: TickerTableName
         };
-        tickers = await dbClient.scan(scanParams).promise();
-
-        console.log(tickers);
-        console.log(tickers.Items[0]);
-        console.log(tickers.Items[0]['coinId']);
-
+        const tickers = await dbClient.scan(params).promise();  
+        const coinIds = tickers.Items.map((t) => t['coinId']['S']).join('%2C');
+        const coinGeckoEndpoint = ('https://api.coingecko.com/api/v3/simple/price'
+            + `?ids=${coinIds}`
+            + '&vs_currencies=gbp'
+            + '&include_24hr_change=true'
+            + '&include_market_cap=true'
+            + '&include_24hr_vol=true'
+        );
+        const response = await axios.get(coinGeckoEndpoint);
+        const data = response.data;
+        let tickerIdToCoin = {};
         await Promise.all(tickers.Items.map(async (t) => {
-            var coinData = await CoinGeckoClient.simple.price({
-                ids: t['coinId']['S'],
-                vs_currencies: 'gbp'
-            });
-            console.log(coinData);
-            var putParams = {
+            params = {
                 TableName: TickerPriceTableName,
                 Item: {
                     'id': {
@@ -55,13 +50,75 @@ exports.handler = async (event, context) => {
                         S: new Date().toISOString()
                     },
                     'price': {
-                        N: `${coinData['data'][t['coinId']['S']]['gbp']}`
+                        N: `${data[t['coinId']['S']]['gbp']}`
+                    },
+                    'twentyFourHourChange': {
+                        N: `${data[t['coinId']['S']]['gbp_24h_change']}`
                     }
                 }
             };
-            console.log(putParams);
-            await dbClient.putItem(putParams).promise();
-        }))
+            await dbClient.putItem(params).promise();
+            tickerIdToCoin[t['id']['S']] = {
+                price: data[t['coinId']['S']]['gbp'],
+                change: data[t['coinId']['S']]['gbp_24h_change'],
+                marketCap: data[t['coinId']['S']]['gbp_market_cap'],
+                volume: data[t['coinId']['S']]['gbp_24h_vol']
+            };
+        }));
+        params = {
+            TableName: HoldingsTableName
+        };
+        const holdings = await dbClient.scan(params).promise();
+        await Promise.all(holdings.Items.map(async (h) => {
+            const currCoin = tickerIdToCoin[h['tickerId']['S']];
+            params = {
+                TableName: HoldingsTableName,
+                Key: {
+                    'id': {
+                        S: h['id']['S']
+                    }
+                },
+                UpdateExpression: `SET currentPrice = :currentPrice, marketValue = :marketValue, twentyFourHourChange = :twentyFourHourChange, marketCap = :marketCap, volume = :volume`,
+                ExpressionAttributeValues: {
+                    ':currentPrice': {
+                        N: `${currCoin['price']}`
+                    },
+                    ':marketValue': {
+                        N: `${currCoin['price'] * h['units']['N']}`
+                    },
+                    ':twentyFourHourChange': {
+                        N: `${currCoin['change']}`
+                    },
+                    ':marketCap': {
+                        N: `${currCoin['marketCap']}`
+                    },
+                    ':volume': {
+                        N: `${currCoin['volume']}`
+                    }
+                }
+            };
+            await dbClient.updateItem(params).promise();
+        }));
+        // params = {
+        //     TableName: TransactionsTableName
+        // }
+        // const transactions = await dbClient.scan(params).promise();
+        // Promise.all(transactions.Items.map(async (t) => {
+        //     params = {
+        //         TableName: TransactionsTableName,
+        //         Key: {
+        //             'id': {
+        //                 S: t['id']['S']
+        //             }
+        //         },
+        //         UpdateExpression: 'SET totalGain = :totalGain',
+        //         ExpressionAttributeValues: {
+        //             ':totalGain': {
+        //                 N: `${holdingIdToPrice[t['id']['S']]}`
+        //             }
+        //         }
+        //     };
+        // }));
     } catch (err) {
         console.log(err);
     }
