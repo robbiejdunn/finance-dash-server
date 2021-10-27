@@ -149,12 +149,12 @@ export class FinanceDashServerStack extends Stack {
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/create-holding', 
                 'lambdas/create-holding', 
-                localBucket
+                localBucket,
             ),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
             }
         });
 
@@ -168,7 +168,7 @@ export class FinanceDashServerStack extends Stack {
             ),
             timeout: Duration.seconds(10),
             environment: {
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
             }
         });
         
@@ -183,7 +183,23 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(10),
             environment: {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+            }
+        });
+
+        const getPortfolioFullFunction = new Function(this, 'GetPortfolioFullFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-portfolio-full', 
+                'lambdas/get-portfolio-full', 
+                localBucket,
+            ),
+            timeout: Duration.seconds(10),
+            environment: {
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
+                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
             }
         });
 
@@ -192,17 +208,23 @@ export class FinanceDashServerStack extends Stack {
         tickerTable.grantReadData(listTickersFunction);
         tickerTable.grantReadData(createTickerPricesCronFunction);
         tickerTable.grantReadData(getHoldingFunction);
+        
         tickerPriceTable.grantWriteData(createTickerPriceFunction);
-        tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
+        tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
         tickerPriceTable.grantReadData(getHoldingFunction);
+        tickerPriceTable.grantReadData(getPortfolioFullFunction);
+
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantWriteData(createTickerPricesCronFunction)
         holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
+        holdingsTable.grantReadData(getPortfolioFullFunction);
+        
         transactionTable.grantWriteData(createTransactionFunction);
         transactionTable.grantReadData(getHoldingFunction);
+        transactionTable.grantReadData(getPortfolioFullFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
@@ -219,6 +241,7 @@ export class FinanceDashServerStack extends Stack {
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
         const getHoldingIntegration = new LambdaIntegration(getHoldingFunction);
         const createTransactionIntegration = new LambdaIntegration(createTransactionFunction);
+        const getPortfolioFullIntegration = new LambdaIntegration(getPortfolioFullFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -248,6 +271,9 @@ export class FinanceDashServerStack extends Stack {
 
         const transactionsApiResource = api.root.addResource('transactions');
         transactionsApiResource.addMethod('POST', createTransactionIntegration);
+
+        const portfolioApiResource = api.root.addResource('portfolio');
+        portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
     }
 
     private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {

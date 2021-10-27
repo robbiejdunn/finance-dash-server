@@ -1,5 +1,5 @@
 {
-    "name": "finance-dash-server-create-ticker-prices-cron",
+    "name": "finance-dash-server-get-portfolio-full",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -8,8 +8,6 @@
     },
     "author": "Robbie Dunn",
     "dependencies": {
-        "aws-sdk": "*",
-        "axios": "^0.21.1",
-        "uuid": "*"
+        "aws-sdk": "*"
     }
 }
