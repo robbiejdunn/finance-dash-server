@@ -99,26 +99,6 @@ exports.handler = async (event, context) => {
             };
             await dbClient.updateItem(params).promise();
         }));
-        // params = {
-        //     TableName: TransactionsTableName
-        // }
-        // const transactions = await dbClient.scan(params).promise();
-        // Promise.all(transactions.Items.map(async (t) => {
-        //     params = {
-        //         TableName: TransactionsTableName,
-        //         Key: {
-        //             'id': {
-        //                 S: t['id']['S']
-        //             }
-        //         },
-        //         UpdateExpression: 'SET totalGain = :totalGain',
-        //         ExpressionAttributeValues: {
-        //             ':totalGain': {
-        //                 N: `${holdingIdToPrice[t['id']['S']]}`
-        //             }
-        //         }
-        //     };
-        // }));
     } catch (err) {
         console.log(err);
     }
