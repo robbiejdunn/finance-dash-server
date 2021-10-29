@@ -3,6 +3,7 @@ const AWS = require('aws-sdk');
 
 const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
 const TransactionsTableName = process.env.TRANSACTIONS_TABLE_NAME;
+const TickersTableName = process.env.TICKERS_TABLE_NAME;
 const TickerPricesTableName = process.env.TICKER_PRICES_TABLE_NAME;
 
 
@@ -32,20 +33,28 @@ exports.handler = async (event, context) => {
             TableName: HoldingsTableName
         };
         const holdings = await dbClient.scan(params).promise();
+
         params = {
             TableName: TransactionsTableName
         };
         const transactions = await dbClient.scan(params).promise();
+
         params = {
             TableName: TickerPricesTableName
         };
         const tickerPrices = await dbClient.scan(params).promise();
+
+        params = {
+            TableName: TickersTableName
+        };
+        const tickers = await dbClient.scan(params).promise();
 
         response.statusCode = 200;
         response.body = JSON.stringify({
             holdings: holdings,
             transactions: transactions,
             tickerPrices: tickerPrices,
+            tickers: tickers,
         })
         console.log(response)
     } catch (err) {

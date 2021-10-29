@@ -36,6 +36,7 @@ exports.handler = async (event, context) => {
         const response = await axios.get(coinGeckoEndpoint);
         const data = response.data;
         let tickerIdToCoin = {};
+        const dateStr = new Date().toISOString();
         await Promise.all(tickers.Items.map(async (t) => {
             params = {
                 TableName: TickerPriceTableName,
@@ -47,7 +48,7 @@ exports.handler = async (event, context) => {
                         S: t['id']['S']
                     },
                     'datetime': {
-                        S: new Date().toISOString()
+                        S: dateStr
                     },
                     'price': {
                         N: `${data[t['coinId']['S']]['gbp']}`

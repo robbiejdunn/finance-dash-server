@@ -200,6 +200,7 @@ export class FinanceDashServerStack extends Stack {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
+                'TICKERS_TABLE_NAME': tickerTable.tableName,
             }
         });
 
@@ -208,6 +209,7 @@ export class FinanceDashServerStack extends Stack {
         tickerTable.grantReadData(listTickersFunction);
         tickerTable.grantReadData(createTickerPricesCronFunction);
         tickerTable.grantReadData(getHoldingFunction);
+        tickerTable.grantReadData(getPortfolioFullFunction);
         
         tickerPriceTable.grantWriteData(createTickerPriceFunction);
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
@@ -221,7 +223,7 @@ export class FinanceDashServerStack extends Stack {
         holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
-        
+
         transactionTable.grantWriteData(createTransactionFunction);
         transactionTable.grantReadData(getHoldingFunction);
         transactionTable.grantReadData(getPortfolioFullFunction);
