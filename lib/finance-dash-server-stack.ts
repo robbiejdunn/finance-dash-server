@@ -155,6 +155,7 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
             }
         });
 
@@ -213,6 +214,7 @@ export class FinanceDashServerStack extends Stack {
         
         tickerPriceTable.grantWriteData(createTickerPriceFunction);
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
+        tickerPriceTable.grantWriteData(createHoldingFunction);
         tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
         tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
