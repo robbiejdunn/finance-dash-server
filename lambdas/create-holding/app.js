@@ -122,29 +122,31 @@ exports.handler = async (event, context) => {
         const coinGeckoHistoricalDataEndpoint = (
             `https://api.coingecko.com/api/v3/coins/${pickedCryptoId}/market_chart`
             + '?vs_currency=gbp'
-            + '&days=20'
+            + '&days=max'
             + '&interval=daily'
         );
         const historyResponse = await axios.get(coinGeckoHistoricalDataEndpoint);
         
         const putRequests = historyResponse.data.prices.map(([datetime, price]) => {
-            return {
-                PutRequest: {
-                    Item: {
-                        'id': {
-                            S: uuidv4()
-                        },
-                        'tickerId': {
-                            S: tickerId
-                        },
-                        'datetime': {
-                            S: new Date(datetime).toISOString()
-                        },
-                        'price': {
-                            N: `${price}`
-                        },
-                        'twentyFourHourChange': {
-                            N: '0'
+            if(parseFloat(price)) {
+                return {
+                    PutRequest: {
+                        Item: {
+                            'id': {
+                                S: uuidv4()
+                            },
+                            'tickerId': {
+                                S: `${tickerId}`
+                            },
+                            'datetime': {
+                                S: new Date(datetime).toISOString()
+                            },
+                            'price': {
+                                N: `${price}`
+                            },
+                            'twentyFourHourChange': {
+                                N: '0'
+                            }
                         }
                     }
                 }
@@ -163,32 +165,6 @@ exports.handler = async (event, context) => {
             };
             await dbClient.batchWriteItem(params).promise();
         }
-
-
-        // splitItemsChunks(putRequests).map(async function(chunk) {
-        //     params = {
-        //         RequestItems: {
-        //             [TickerPricesTableName]: chunk
-        //         }
-        //     };
-        //     // console.log(JSON.stringify(params));
-        //     try {
-        //         console.log("here123")
-        //         const rap = await dbClient.batchWriteItem(params).promise();
-        //         console.log("reached123")
-        //         console.log(rap);
-        //     } catch (err) {
-        //         console.log("ERROR")
-        //     }
-            
-        //     // await dbClient.batchWriteItem(params).promise()
-        //     //     .then((data) => {
-        //     //         console.log("success", data);
-        //     //     })
-        //     //     .catch((err) => {
-        //     //         console.log(err);
-        //     //     })
-        // }).promise();
 
         response = {
             statusCode: 200,
