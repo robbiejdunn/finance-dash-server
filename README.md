@@ -18,6 +18,10 @@ Deply CDK stack locally:
 
 `cdklocal deploy`
 
+To use dynamodb-admin web interface:
+
+`DYNAMO_ENDPOINT=http://localhost:4566 dynamodb-admin`
+
 ### AWS Deployment
 
 Bootstrap AWS if not done already:

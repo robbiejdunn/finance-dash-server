@@ -9,6 +9,7 @@
     "author": "Robbie Dunn",
     "dependencies": {
         "aws-sdk": "*",
+        "axios": "^0.21.1",
         "coingecko-api": "^1.0.10",
         "lodash": "^4.17.21",
         "uuid": "*"
