@@ -31,8 +31,6 @@ exports.handler = async (event, context) => {
         };
         const holdingGetData = await dbClient.getItem(params).promise();
 
-        console.log(holdingGetData);
-
         params = {
             TableName: TickersTableName,
             Key: {

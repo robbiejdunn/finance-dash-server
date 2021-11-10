@@ -153,8 +153,6 @@ exports.handler = async (event, context) => {
             }
         });
 
-        console.log(tickerId);
-
         const chunks = splitItemsChunks(putRequests);
         // this should be a map but couldn't get working with async
         for (let i = 0; i < chunks.length; i += 1) {
