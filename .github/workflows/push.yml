@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Push
+
+on:
+  push:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  push_git_tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        id: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "Get version"
+        id: version
+        uses: martinbeentjes/npm-get-version-action@master
+        with:
+          path: app
+      - name: "Push git tag"
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.email "CI@bot.com"
+          git config user.name "CI bot"
+          git tag -a "v${{ steps.version.outputs.current-version }}" -m "Version ${{ steps.version.outputs.current-version }}"
+          git push origin "v${{ steps.version.outputs.current-version }}"

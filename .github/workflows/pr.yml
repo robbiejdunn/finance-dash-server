@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+#   workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  check_version_incremented:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        id: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "Get source version"
+        id: source-version
+        uses: martinbeentjes/npm-get-version-action@master
+        with:
+          path: app
+      - name: "Checkout target branch"
+        run: cd $GITHUB_WORKSPACE && git checkout master
+      - name: "Get target version"
+        id: target-version
+        uses: martinbeentjes/npm-get-version-action@master
+        with:
+          path: app
+      - name: "Check version incremented"
+        run: cd $GITHUB_WORKSPACE && git checkout $GITHUB_SHA && .github/compare_version.sh ${{ steps.target-version.outputs.current-version }} ${{ steps.source-version.outputs.current-version }}
