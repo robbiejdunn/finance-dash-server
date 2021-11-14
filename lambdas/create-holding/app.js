@@ -38,17 +38,12 @@ exports.handler = async (event, context) => {
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
         let requestData = JSON.parse(event.body);
-
-        // create Ticker
-        let data = await CoinGeckoClient.coins.list();
-        let dataCoinList = data['data'];
-        let pickedCrypto = lodash.filter(dataCoinList, x => x['symbol'] === requestData.symbol.toLowerCase());
-        let pickedCryptoId = pickedCrypto[0]['id'];
+        let pickedCryptoId = requestData['coinId'];
 
         let coinData = await CoinGeckoClient.coins.fetch(pickedCryptoId, {
             localization: false,
             tickers: false,
-            market_data: false,
+            market_data: true,
             community_data: false,
             developer_data: false,
         });
@@ -65,7 +60,7 @@ exports.handler = async (event, context) => {
                     S: coinDataFetch['name']
                 },
                 'symbol': {
-                    S: requestData.symbol
+                    S: coinDataFetch['symbol']
                 },
                 'description': {
                     S: coinDataFetch['description']['en']
@@ -91,13 +86,13 @@ exports.handler = async (event, context) => {
                     S: coinDataFetch['name']
                 },
                 'symbol': {
-                    S: requestData.symbol
+                    S: coinDataFetch['symbol']
                 },
                 'units': {
                     N: '0'
                 },
                 'currentPrice': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['current_price']['gbp']}`
                 },
                 'tickerId': {
                     S: tickerId
@@ -106,13 +101,13 @@ exports.handler = async (event, context) => {
                     N: '0'
                 },
                 'twentyFourHourChange': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['price_change_24h']}`
                 },
                 'marketCap': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['market_cap']['gbp']}`
                 },
                 'volume': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['total_volume']['gbp']}`
                 }
             }
         }
@@ -126,7 +121,7 @@ exports.handler = async (event, context) => {
             + '&interval=daily'
         );
         const historyResponse = await axios.get(coinGeckoHistoricalDataEndpoint);
-        
+
         const putRequests = historyResponse.data.prices.map(([datetime, price]) => {
             if(parseFloat(price)) {
                 return {

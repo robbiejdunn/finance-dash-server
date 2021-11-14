@@ -65,7 +65,6 @@ exports.handler = async (event, context) => {
         } else {
             params.UpdateExpression = 'SET units = units - :increment'
         }
-        console.log(params);
         await dbClient.updateItem(params).promise();
         response = {
             statusCode: 200,

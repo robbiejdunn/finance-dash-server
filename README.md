@@ -2,6 +2,8 @@
 
 Backend lambdas and CDK stack for portfolio tracking web app. Repository for app frontend https://github.com/robbiejdunn/finance-dash.
 
+[![Push](https://github.com/robbiejdunn/finance-dash-server/actions/workflows/push.yml/badge.svg)](https://github.com/robbiejdunn/finance-dash-server/actions/workflows/push.yml)
+
 ## Usage
 
 ### Development
