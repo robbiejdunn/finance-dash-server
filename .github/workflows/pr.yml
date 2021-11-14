@@ -22,14 +22,10 @@ jobs:
       - name: "Get source version"
         id: source-version
         uses: martinbeentjes/npm-get-version-action@master
-        with:
-          path: app
       - name: "Checkout target branch"
         run: cd $GITHUB_WORKSPACE && git checkout master
       - name: "Get target version"
         id: target-version
         uses: martinbeentjes/npm-get-version-action@master
-        with:
-          path: app
       - name: "Check version incremented"
         run: cd $GITHUB_WORKSPACE && git checkout $GITHUB_SHA && .github/compare_version.sh ${{ steps.target-version.outputs.current-version }} ${{ steps.source-version.outputs.current-version }}

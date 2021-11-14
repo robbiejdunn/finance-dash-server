@@ -19,8 +19,6 @@ jobs:
       - name: "Get version"
         id: version
         uses: martinbeentjes/npm-get-version-action@master
-        with:
-          path: app
       - name: "Push git tag"
         run: |
           cd $GITHUB_WORKSPACE
