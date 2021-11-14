@@ -43,7 +43,7 @@ exports.handler = async (event, context) => {
         let coinData = await CoinGeckoClient.coins.fetch(pickedCryptoId, {
             localization: false,
             tickers: false,
-            market_data: false,
+            market_data: true,
             community_data: false,
             developer_data: false,
         });
@@ -94,7 +94,7 @@ exports.handler = async (event, context) => {
                     N: '0'
                 },
                 'currentPrice': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['current_price']['gbp']}`
                 },
                 'tickerId': {
                     S: tickerId
@@ -103,13 +103,13 @@ exports.handler = async (event, context) => {
                     N: '0'
                 },
                 'twentyFourHourChange': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['price_change_24h']}`
                 },
                 'marketCap': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['market_cap']['gbp']}`
                 },
                 'volume': {
-                    N: '0'
+                    N: `${coinDataFetch['market_data']['total_volume']['gbp']}`
                 }
             }
         }
