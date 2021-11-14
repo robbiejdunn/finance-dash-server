@@ -74,8 +74,6 @@ exports.handler = async (event, context) => {
             }
         };
 
-        console.log(params);
-
         await dbClient.putItem(params).promise();
 
         params = {
@@ -114,8 +112,6 @@ exports.handler = async (event, context) => {
             }
         }
 
-        console.log(params);
-
         await dbClient.putItem(params).promise();
         
         const coinGeckoHistoricalDataEndpoint = (
@@ -125,8 +121,7 @@ exports.handler = async (event, context) => {
             + '&interval=daily'
         );
         const historyResponse = await axios.get(coinGeckoHistoricalDataEndpoint);
-        
-        console.log("Got history")
+
         const putRequests = historyResponse.data.prices.map(([datetime, price]) => {
             if(parseFloat(price)) {
                 return {
