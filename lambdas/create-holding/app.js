@@ -38,12 +38,7 @@ exports.handler = async (event, context) => {
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
         let requestData = JSON.parse(event.body);
-
-        // create Ticker
-        let data = await CoinGeckoClient.coins.list();
-        let dataCoinList = data['data'];
-        let pickedCrypto = lodash.filter(dataCoinList, x => x['symbol'] === requestData.symbol.toLowerCase());
-        let pickedCryptoId = pickedCrypto[0]['id'];
+        let pickedCryptoId = requestData['coinId'];
 
         let coinData = await CoinGeckoClient.coins.fetch(pickedCryptoId, {
             localization: false,
@@ -65,7 +60,7 @@ exports.handler = async (event, context) => {
                     S: coinDataFetch['name']
                 },
                 'symbol': {
-                    S: requestData.symbol
+                    S: coinDataFetch['symbol']
                 },
                 'description': {
                     S: coinDataFetch['description']['en']
@@ -79,6 +74,8 @@ exports.handler = async (event, context) => {
             }
         };
 
+        console.log(params);
+
         await dbClient.putItem(params).promise();
 
         params = {
@@ -91,7 +88,7 @@ exports.handler = async (event, context) => {
                     S: coinDataFetch['name']
                 },
                 'symbol': {
-                    S: requestData.symbol
+                    S: coinDataFetch['symbol']
                 },
                 'units': {
                     N: '0'
@@ -117,6 +114,8 @@ exports.handler = async (event, context) => {
             }
         }
 
+        console.log(params);
+
         await dbClient.putItem(params).promise();
         
         const coinGeckoHistoricalDataEndpoint = (
@@ -127,6 +126,7 @@ exports.handler = async (event, context) => {
         );
         const historyResponse = await axios.get(coinGeckoHistoricalDataEndpoint);
         
+        console.log("Got history")
         const putRequests = historyResponse.data.prices.map(([datetime, price]) => {
             if(parseFloat(price)) {
                 return {
