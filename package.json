@@ -1,6 +1,6 @@
 {
   "name": "finance-dash-server",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "Robbie Dunn",
   "bin": {
     "finance-dash-server": "bin/finance-dash-server.js"
@@ -22,12 +22,14 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "1.117.0",
-    "@aws-cdk/aws-dynamodb": "1.117.0",
-    "@aws-cdk/aws-events": "1.117.0",
-    "@aws-cdk/aws-events-targets": "1.117.0",
-    "@aws-cdk/aws-lambda": "1.117.0",
-    "@aws-cdk/aws-s3": "1.117.0",
-    "@aws-cdk/core": "1.117.0"
+    "@aws-cdk/aws-apigateway": "^1.117.0",
+    "@aws-cdk/aws-dynamodb": "^1.117.0",
+    "@aws-cdk/aws-events": "^1.117.0",
+    "@aws-cdk/aws-events-targets": "^1.117.0",
+    "@aws-cdk/aws-lambda": "^1.117.0",
+    "@aws-cdk/aws-s3": "^1.117.0",
+    "@aws-cdk/aws-sns": "^1.117.0",
+    "@aws-cdk/aws-sns-subscriptions": "^1.117.0",
+    "@aws-cdk/core": "^1.117.0"
   }
 }

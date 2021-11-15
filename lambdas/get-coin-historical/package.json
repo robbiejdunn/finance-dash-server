@@ -1,5 +1,5 @@
 {
-    "name": "finance-dash-server-create-ticker",
+    "name": "finance-dash-server-get-coin-historical",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -9,8 +9,7 @@
     "author": "Robbie Dunn",
     "dependencies": {
         "aws-sdk": "*",
-        "coingecko-api": "^1.0.10",
-        "lodash": "^4.17.21",
+        "axios": "^0.21.1",
         "uuid": "*"
     }
 }

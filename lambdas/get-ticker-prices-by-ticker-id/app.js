@@ -16,7 +16,6 @@ const makeClient = () => {
 };
 const dbClient = makeClient()
 
-let response;
 exports.handler = async (event, context) => {
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
@@ -32,18 +31,13 @@ exports.handler = async (event, context) => {
         console.log(params);
         console.log(`Querying DynamoDB table ${params.TableName}`);
         data = await dbClient.query(params).promise();
-        response = {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Headers' : 'Content-Type',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,GET'
-            },
-            body: JSON.stringify(data)
-        };
+
+        response.statusCode = 200;
+        response.body = JSON.stringify(data);
     } catch (err) {
         console.log(err);
-        return err;
+        response.statusCode = 500;
+        response.body = err;
     }
     return response;
 };

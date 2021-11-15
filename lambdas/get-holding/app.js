@@ -17,8 +17,14 @@ const makeClient = () => {
 };
 const dbClient = makeClient()
 
-let response;
 exports.handler = async (event, context) => {
+    const response = {
+        headers: {        
+            'Access-Control-Allow-Headers' : 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET'
+        }
+    }
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
         let params = {
@@ -68,18 +74,13 @@ exports.handler = async (event, context) => {
             'transactions': transactionsGetData
         }
 
-        response = {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Headers' : 'Content-Type',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,GET'
-            },
-            body: JSON.stringify(responseData)
-        };
+        response.statusCode = 200;
+        response.body = JSON.stringify(responseData);
+
     } catch (err) {
         console.log(err);
-        return err;
+        response.statusCode = 500;
+        response.body = err;
     }
     return response;
 };
