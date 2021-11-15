@@ -3,10 +3,9 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const TickersTableName = process.env.TICKERS_TABLE_NAME;
 const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
-const TickerPricesTableName = process.env.TICKER_PRICES_TABLE_NAME;
+const HistoricalDataTopicArn = process.env.HISTORICAL_TOPIC_ARN;
 
 // TODO: move to utils / shared location
-let dynamoDbClient;
 const makeClient = () => {
     const options = {
         region: 'eu-west-2'
@@ -14,10 +13,22 @@ const makeClient = () => {
     if(process.env.LOCALSTACK_HOSTNAME) {
         options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
     }
-    dynamoDbClient = new AWS.DynamoDB(options);
+    const dynamoDbClient = new AWS.DynamoDB(options);
     return dynamoDbClient;
 };
-const dbClient = makeClient()
+const dbClient = makeClient();
+
+const makeSNSClient = () => {
+    const options = {
+        region: 'eu-west-2'
+    };
+    if(process.env.LOCALSTACK_HOSTNAME) {
+        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
+    }
+    const client = new AWS.SNS(options);
+    return client;
+}
+const snsClient = makeSNSClient();
 
 // since ddb can only take 25 items at a time, split into chunks
 const splitItemsChunks = (arr, chunkSize=25) => {
@@ -39,7 +50,7 @@ exports.handler = async (event, context) => {
         }
     }
     try {
-        console.log('Received event:', JSON.stringify(event, null, 2));
+        // console.log('Received event:', JSON.stringify(event, null, 2));
         let requestData = JSON.parse(event.body);
         let pickedCryptoId = requestData['coinId'];
 
@@ -52,7 +63,7 @@ exports.handler = async (event, context) => {
             + '&developer_data=false'
         );
         let coinData = await axios.get(coinGeckoFetchEndpoint);
-        console.log(coinData);
+        // console.log(coinData);
 
         let coinDataFetch = coinData['data'];
         const tickerId = uuidv4();
@@ -120,6 +131,15 @@ exports.handler = async (event, context) => {
         }
 
         await dbClient.putItem(params).promise();
+
+        params = {
+            Message: `${pickedCryptoId} ${tickerId}`,
+            TopicArn: HistoricalDataTopicArn
+        }
+        console.log("Posting topic", params);
+
+        const publishResp = await snsClient.publish(params).promise();
+        console.log(publishResp);
 
         response.statusCode = 200;
         response.body = "Success";
