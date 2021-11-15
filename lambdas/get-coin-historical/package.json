@@ -1,5 +1,5 @@
 {
-    "name": "finance-dash-server-create-holding",
+    "name": "finance-dash-server-get-coin-historical",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
