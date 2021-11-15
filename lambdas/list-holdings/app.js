@@ -14,8 +14,15 @@ const makeClient = () => {
 };
 const dbClient = makeClient()
 
-let response;
+
 exports.handler = async (event, context) => {
+    const response = {
+        headers: {        
+            'Access-Control-Allow-Headers' : 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET'
+        }
+    }
     try {
         const params = {
             TableName: HoldingsTableName,
@@ -25,19 +32,12 @@ exports.handler = async (event, context) => {
             }
         };
         const data = await dbClient.scan(params).promise();
-        response = {
-            statusCode: 200,
-            headers: {
-                
-                'Access-Control-Allow-Headers' : 'Content-Type',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,GET'
-            },
-            body: JSON.stringify(data)
-        };
+        response.statusCode = 200;
+        response.body = JSON.stringify(data);
     } catch (err) {
         console.log(err);
-        return err;
+        response.statusCode = 500;
+        response.body = err;
     }
     return response;
 };

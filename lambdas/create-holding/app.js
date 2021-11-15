@@ -40,7 +40,6 @@ const splitItemsChunks = (arr, chunkSize=25) => {
     return res;
 }
 
-let response;
 exports.handler = async (event, context) => {
     const response = {
         headers: {        

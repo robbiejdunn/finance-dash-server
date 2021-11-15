@@ -25,9 +25,8 @@ const splitItemsChunks = (arr, chunkSize=25) => {
         res.push(chunk);
     }
     return res;
-}
+};
 
-let response;
 exports.handler = async (event, context) => {
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
@@ -87,5 +86,4 @@ exports.handler = async (event, context) => {
     } catch (err) {
         console.log(err);
     }
-    return response;
 };

@@ -55,34 +55,6 @@ export class FinanceDashServerStack extends Stack {
 
         // this is for mounting code when running with localstack
         const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
-        
-        const createTickerFunction = new Function(this, 'CreateTickerFunction', {
-            runtime: Runtime.NODEJS_14_X,
-            handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker', 
-                'lambdas/create-ticker', 
-                localBucket
-            ),
-            timeout: Duration.seconds(10),
-            environment: {
-                'TICKER_TABLE': tickerTable.tableName
-            }
-        });
-
-        const listTickersFunction = new Function(this, 'ListTickersFunction', {
-            runtime: Runtime.NODEJS_14_X,
-            handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/list-tickers', 
-                'lambdas/list-tickers', 
-                localBucket
-            ),
-            timeout: Duration.seconds(10),
-            environment: {
-                'TICKER_TABLE': tickerTable.tableName
-            }
-        });
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
@@ -100,20 +72,6 @@ export class FinanceDashServerStack extends Stack {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
             }
         });
-
-        const createTickerPriceFunction = new Function(this, 'CreateTickerPriceFunction', {
-            runtime: Runtime.NODEJS_14_X,
-            handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-price', 
-                'lambdas/create-ticker-price', 
-                localBucket
-            ),
-            timeout: Duration.seconds(10),
-            environment: {
-                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
-            }
-        })
 
         const getTickerPricesByTickerIdFunction = new Function(this, 'GetTickerPricesByTickerIdFunction', {
             runtime: Runtime.NODEJS_14_X,
@@ -230,14 +188,11 @@ export class FinanceDashServerStack extends Stack {
 
         historicalDataTopic.grantPublish(createHoldingFunction);
 
-        tickerTable.grantWriteData(createTickerFunction);
         tickerTable.grantWriteData(createHoldingFunction);
-        tickerTable.grantReadData(listTickersFunction);
         tickerTable.grantReadData(createTickerPricesCronFunction);
         tickerTable.grantReadData(getHoldingFunction);
         tickerTable.grantReadData(getPortfolioFullFunction);
-        
-        tickerPriceTable.grantWriteData(createTickerPriceFunction);
+
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
         tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
@@ -262,9 +217,6 @@ export class FinanceDashServerStack extends Stack {
             targets: [createTickerPricesCronTarget]
         });
 
-        const createTickerIntegration = new LambdaIntegration(createTickerFunction);
-        const listTickersIntegration = new LambdaIntegration(listTickersFunction);
-        const createTickerPriceIntegration = new LambdaIntegration(createTickerPriceFunction);
         const getTickerPricesByTickerIdIntegration = new LambdaIntegration(getTickerPricesByTickerIdFunction);
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
@@ -281,14 +233,7 @@ export class FinanceDashServerStack extends Stack {
             },
         });
 
-        const tickersApiResource = api.root.addResource('tickers');
-        tickersApiResource.addMethod('POST', createTickerIntegration);
-
-        const tickersListApiResource = tickersApiResource.addResource('list');
-        tickersListApiResource.addMethod('GET', listTickersIntegration);
-
         const tickersPriceApiResource = api.root.addResource('tickersPrice');
-        tickersPriceApiResource.addMethod('POST', createTickerPriceIntegration);
         tickersPriceApiResource.addMethod('GET', getTickerPricesByTickerIdIntegration);
 
         const holdingsApiResource = api.root.addResource('holdings');
