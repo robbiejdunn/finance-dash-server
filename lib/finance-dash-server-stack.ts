@@ -73,20 +73,6 @@ export class FinanceDashServerStack extends Stack {
             }
         });
 
-        const getTickerPricesByTickerIdFunction = new Function(this, 'GetTickerPricesByTickerIdFunction', {
-            runtime: Runtime.NODEJS_14_X,
-            handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-ticker-prices-by-ticker-id', 
-                'lambdas/get-ticker-prices-by-ticker-id', 
-                localBucket
-            ),
-            timeout: Duration.seconds(10),
-            environment: {
-                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName
-            }
-        });
-
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
@@ -195,16 +181,16 @@ export class FinanceDashServerStack extends Stack {
 
         tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
-        tickerPriceTable.grantReadData(getTickerPricesByTickerIdFunction)
         tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
-        holdingsTable.grantWriteData(createTickerPricesCronFunction)
+        holdingsTable.grantWriteData(createTickerPricesCronFunction);
         holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
+        holdingsTable.grantReadData(createTickerPricesCronFunction);
 
         transactionTable.grantWriteData(createTransactionFunction);
         transactionTable.grantReadData(getHoldingFunction);
@@ -217,7 +203,6 @@ export class FinanceDashServerStack extends Stack {
             targets: [createTickerPricesCronTarget]
         });
 
-        const getTickerPricesByTickerIdIntegration = new LambdaIntegration(getTickerPricesByTickerIdFunction);
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
         const getHoldingIntegration = new LambdaIntegration(getHoldingFunction);
@@ -232,9 +217,6 @@ export class FinanceDashServerStack extends Stack {
                 allowMethods: Cors.ALL_METHODS
             },
         });
-
-        const tickersPriceApiResource = api.root.addResource('tickersPrice');
-        tickersPriceApiResource.addMethod('GET', getTickerPricesByTickerIdIntegration);
 
         const holdingsApiResource = api.root.addResource('holdings');
         holdingsApiResource.addMethod('POST', createHoldingIntegration);
