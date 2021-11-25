@@ -12,7 +12,7 @@ export class FinanceDashStack extends Stack {
         });
 
         new BucketDeployment(this, 'DeploySite', {
-            sources: [Source.asset('../app/build')],
+            sources: [Source.asset('../build')],
             destinationBucket: siteBucket
         });
     }
