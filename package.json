@@ -1,6 +1,6 @@
 {
-    "name": "finance-dash",
-    "version": "0.5.0",
+    "name": "finance-dash-server",
+    "version": "0.6.0",
     "private": true,
     "dependencies": {
         "@emotion/react": "^11.5.0",
