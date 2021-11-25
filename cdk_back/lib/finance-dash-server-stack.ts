@@ -54,15 +54,14 @@ export class FinanceDashServerStack extends Stack {
         })
 
         // this is for mounting code when running with localstack
-        const localBucket = Bucket.fromBucketName(this, 's3local', '__local__');
+        // const localBucket = Bucket.fromBucketName(this, 's3local', 'local');
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/get-holding', 
-                'lambdas/get-holding', 
-                localBucket
+                'lambdas/get-holding',
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -78,8 +77,7 @@ export class FinanceDashServerStack extends Stack {
             handler: 'app.handler',
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 
-                'lambdas/create-ticker-prices-cron', 
-                localBucket
+                'lambdas/create-ticker-prices-cron',
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -95,8 +93,7 @@ export class FinanceDashServerStack extends Stack {
             handler: 'app.handler',
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/list-holdings', 
-                'lambdas/list-holdings', 
-                localBucket
+                'lambdas/list-holdings',
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -109,8 +106,7 @@ export class FinanceDashServerStack extends Stack {
             handler: 'app.handler',
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/create-transaction', 
-                'lambdas/create-transaction', 
-                localBucket
+                'lambdas/create-transaction',
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -125,7 +121,6 @@ export class FinanceDashServerStack extends Stack {
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/get-portfolio-full', 
                 'lambdas/get-portfolio-full', 
-                localBucket,
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -142,7 +137,6 @@ export class FinanceDashServerStack extends Stack {
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/get-coin-historical', 
                 'lambdas/get-coin-historical', 
-                localBucket,
             ),
             timeout: Duration.seconds(120),
             environment: {
@@ -154,7 +148,7 @@ export class FinanceDashServerStack extends Stack {
             displayName: 'Historical data topic',
         });
 
-        historicalDataTopic.addSubscription(new LambdaSubscription(getCoinHistoricalFunction));
+        // historicalDataTopic.addSubscription(new LambdaSubscription(getCoinHistoricalFunction));
 
         const createHoldingFunction = new Function(this, 'CreateHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
@@ -162,7 +156,6 @@ export class FinanceDashServerStack extends Stack {
             code: this.getLambdaCode(
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/create-holding', 
                 'lambdas/create-holding', 
-                localBucket,
             ),
             timeout: Duration.seconds(10),
             environment: {
@@ -232,11 +225,7 @@ export class FinanceDashServerStack extends Stack {
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
     }
 
-    private getLambdaCode(local_fp: string, asset_p: string, localBucket: IBucket): Code {
-        if(process.env['_'] && process.env['_'].split('/').pop() === 'cdklocal') {
-            return Code.fromBucket(localBucket, local_fp);
-        } else {
-            return Code.fromAsset(asset_p);
-        }
+    private getLambdaCode(local_fp: string, asset_p: string): Code {
+        return Code.fromAsset(asset_p);
     }
 }
