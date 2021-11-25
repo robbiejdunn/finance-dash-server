@@ -8,6 +8,9 @@ import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 import { strict } from 'assert';
 import { Topic } from '@aws-cdk/aws-sns';
 import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
+import { RetentionDays } from '@aws-cdk/aws-logs';
+import { CustomResource } from '@aws-cdk/core';
+import { Provider } from '@aws-cdk/custom-resources';
 
 
 export class FinanceDashServerStack extends Stack {
@@ -55,6 +58,16 @@ export class FinanceDashServerStack extends Stack {
 
         // this is for mounting code when running with localstack
         // const localBucket = Bucket.fromBucketName(this, 's3local', 'local');
+
+        const initDBFunction = new Function(this, 'InitDBFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/init-db', 
+                'lambdas/init-db',
+            ),
+            timeout: Duration.minutes(10),
+        });
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
@@ -195,6 +208,13 @@ export class FinanceDashServerStack extends Stack {
             schedule: Schedule.cron({minute: '0/10'}),
             targets: [createTickerPricesCronTarget]
         });
+
+        const dbInitProvider = new Provider(this, 'DBInitProvider', {
+            onEventHandler: initDBFunction,
+            logRetention: RetentionDays.ONE_WEEK,
+        })
+
+        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
