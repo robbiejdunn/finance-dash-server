@@ -67,6 +67,9 @@ export class FinanceDashServerStack extends Stack {
                 'lambdas/init-db',
             ),
             timeout: Duration.minutes(10),
+            environment: {
+                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+            }
         });
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
@@ -190,6 +193,7 @@ export class FinanceDashServerStack extends Stack {
         tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
+        holdingsTable.grantWriteData(initDBFunction);
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantWriteData(createTickerPricesCronFunction);
@@ -213,7 +217,6 @@ export class FinanceDashServerStack extends Stack {
             onEventHandler: initDBFunction,
             logRetention: RetentionDays.ONE_WEEK,
         })
-
         new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);

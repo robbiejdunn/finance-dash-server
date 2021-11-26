@@ -7,5 +7,9 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Robbie Dunn",
-    "dependencies": {}
+    "dependencies": {
+        "aws-sdk": "^2.1036.0",
+        "cfn-response": "^1.0.1",
+        "uuid": "^8.3.2"
+    }
 }
