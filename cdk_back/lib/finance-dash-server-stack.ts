@@ -11,11 +11,46 @@ import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
-
+import * as ec2 from '@aws-cdk/aws-ec2';
+import * as rds from '@aws-cdk/aws-rds';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
         super(scope, id, props);
+
+        const privateSubnet: ec2.SubnetConfiguration = {
+            name: 'private',
+            subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+        }
+
+        const 
+
+        const vpc = new ec2.Vpc(this, 'VPC', {
+            cidr: '10.0.0.0/16',
+            maxAzs: 2,
+            natGateways: 1,
+            subnetConfiguration: [
+                
+            ]
+        })
+
+        const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
+            engine: rds.DatabaseInstanceEngine.postgres({
+                version: rds.PostgresEngineVersion.VER_12_8,
+            }),
+            instanceType: ec2.InstanceType.of(
+                ec2.InstanceClass.T2,
+                ec2.InstanceSize.MICRO
+            ),
+            vpc,
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_NAT
+            },
+            allocatedStorage: 20,
+            backupRetention: Duration.days(0),
+            cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
+            multiAz: false,
+        });
         
         // Ticker DDB table
         const tickerTable = new Table(this, 'TickerTable', {
