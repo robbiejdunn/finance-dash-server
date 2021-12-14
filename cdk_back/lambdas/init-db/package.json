@@ -8,8 +8,7 @@
     },
     "author": "Robbie Dunn",
     "dependencies": {
-        "aws-sdk": "^2.1036.0",
         "cfn-response": "^1.0.1",
-        "uuid": "^8.3.2"
+        "pg": "^8.7.1"
     }
 }

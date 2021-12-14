@@ -31,6 +31,24 @@ export class FinanceDashServerStack extends Stack {
             ],
         });
 
+        const postgresCreds = new rds.DatabaseSecret(this, 'Postgres Credentials', {
+            username: 'postgres',
+        });
+
+        const postgresCredsJSON = postgresCreds.secretValue.toJSON();
+
+        const postgresSecurityGroup = new ec2.SecurityGroup(this, 'Postgres Security Group', {
+            vpc,
+            description: 'Allow all incoming access',
+            allowAllOutbound: true,
+        });
+
+        postgresSecurityGroup.addIngressRule(
+            ec2.Peer.anyIpv4(),
+            ec2.Port.tcp(postgresCredsJSON.port),
+            'Allow all incoming access'
+        );
+
         const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
             engine: rds.DatabaseInstanceEngine.postgres({
                 version: rds.PostgresEngineVersion.VER_12_8,
@@ -48,6 +66,8 @@ export class FinanceDashServerStack extends Stack {
             cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
             multiAz: false,
             removalPolicy: RemovalPolicy.DESTROY,
+            credentials: rds.Credentials.fromSecret(postgresCreds),
+            securityGroups: [postgresSecurityGroup],
         });
         
         // Ticker DDB table
@@ -101,8 +121,13 @@ export class FinanceDashServerStack extends Stack {
             ),
             timeout: Duration.minutes(10),
             environment: {
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-            }
+                'PGUSER': postgresCredsJSON.username,
+                'PGHOST': postgresCredsJSON.host,
+                'PGPASSWORD': postgresCredsJSON.password,
+                'PGDATABASE': postgresCredsJSON.dbInstanceIdentifier,
+                'PGPORT': postgresCredsJSON.port,
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
@@ -118,7 +143,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
@@ -134,7 +160,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 // 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const listHoldingsFunction = new Function(this, 'ListHoldingsFunction', {
@@ -147,7 +174,8 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(10),
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
         
         const createTransactionFunction = new Function(this, 'CreateTransactionFunction', {
@@ -161,7 +189,8 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const getPortfolioFullFunction = new Function(this, 'GetPortfolioFullFunction', {
@@ -177,7 +206,8 @@ export class FinanceDashServerStack extends Stack {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const getCoinHistoricalFunction = new Function(this, 'GetCoinHistoricalFunction', {
@@ -190,7 +220,8 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(120),
             environment: {
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const historicalDataTopic = new Topic(this, 'HistoricalDataTopic', {
@@ -211,7 +242,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 'HISTORICAL_TOPIC_ARN': historicalDataTopic.topicArn,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         historicalDataTopic.grantPublish(createHoldingFunction);
@@ -226,7 +258,6 @@ export class FinanceDashServerStack extends Stack {
         tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
-        holdingsTable.grantWriteData(initDBFunction);
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantWriteData(createTickerPricesCronFunction);
@@ -246,11 +277,11 @@ export class FinanceDashServerStack extends Stack {
             targets: [createTickerPricesCronTarget]
         });
 
-        const dbInitProvider = new Provider(this, 'DBInitProvider', {
-            onEventHandler: initDBFunction,
-            logRetention: RetentionDays.ONE_WEEK,
-        })
-        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
+        // const dbInitProvider = new Provider(this, 'DBInitProvider', {
+        //     onEventHandler: initDBFunction,
+        //     logRetention: RetentionDays.ONE_WEEK,
+        // })
+        // new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
