@@ -19,35 +19,36 @@ export class FinanceDashServerStack extends Stack {
         super(scope, id, props);
 
         const vpc = new ec2.Vpc(this, 'VPC', {
-            cidr: '10.0.0.0/16',
-            maxAzs: 1,
+            cidr: '10.0.0.0/24',
+            maxAzs: 2,
             natGateways: 0,
             subnetConfiguration: [
                 {
-                    cidrMask: 16,
+                    // cidrMask: 24,
                     name: 'public',
                     subnetType: ec2.SubnetType.PUBLIC,
                 }
-            ]
+            ],
         });
 
-        // const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
-        //     engine: rds.DatabaseInstanceEngine.postgres({
-        //         version: rds.PostgresEngineVersion.VER_12_8,
-        //     }),
-        //     instanceType: ec2.InstanceType.of(
-        //         ec2.InstanceClass.T2,
-        //         ec2.InstanceSize.MICRO
-        //     ),
-        //     vpc,
-        //     vpcSubnets: {
-        //         subnetType: ec2.SubnetType.PRIVATE_WITH_NAT
-        //     },
-        //     allocatedStorage: 20,
-        //     backupRetention: Duration.days(0),
-        //     cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
-        //     multiAz: false,
-        // });
+        const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
+            engine: rds.DatabaseInstanceEngine.postgres({
+                version: rds.PostgresEngineVersion.VER_12_8,
+            }),
+            instanceType: ec2.InstanceType.of(
+                ec2.InstanceClass.T2,
+                ec2.InstanceSize.MICRO
+            ),
+            vpc,
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PUBLIC
+            },
+            allocatedStorage: 20,
+            backupRetention: Duration.days(0),
+            cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
+            multiAz: false,
+            removalPolicy: RemovalPolicy.DESTROY,
+        });
         
         // Ticker DDB table
         const tickerTable = new Table(this, 'TickerTable', {

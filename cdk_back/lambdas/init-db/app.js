@@ -19,6 +19,8 @@ const makeClient = () => {
 const dbClient = makeClient();
 
 exports.handler = (event, context) => {
+    const requestType = event['RequestType'];
+    console.log(`${requestType} event received`)
     let params = {
         TableName: HoldingsTableName,
         Item: {
@@ -56,6 +58,10 @@ exports.handler = (event, context) => {
     }
     dbClient.putItem(params);
     console.log(event);
-    console.log("new log");
-    return response.send(event, context, response.FAILED, {});
+    console.log("new logs");
+    let responseStatus = response.FAILED;
+    if (requestType === 'Delete') {
+        responseStatus = response.SUCCESS;
+    }
+    return response.send(event, context, responseStatus, {});
 };
