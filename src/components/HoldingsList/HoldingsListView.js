@@ -23,7 +23,8 @@ export default function HoldingsListView() {
         }
         axios.get(endpoint)
         .then(res => {
-            setHoldings(res.data.Items);
+            console.log(res);
+            setHoldings(res.data.items);
         });
     }, []);
 

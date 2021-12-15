@@ -1,6 +1,8 @@
 const AWS = require('aws-sdk');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const { Client } = require('pg');
+
 const TickersTableName = process.env.TICKERS_TABLE_NAME;
 const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
 const HistoricalDataTopicArn = process.env.HISTORICAL_TOPIC_ARN;
@@ -18,27 +20,6 @@ const makeClient = () => {
 };
 const dbClient = makeClient();
 
-const makeSNSClient = () => {
-    const options = {
-        region: 'eu-west-2'
-    };
-    if(process.env.LOCALSTACK_HOSTNAME) {
-        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
-    }
-    const client = new AWS.SNS(options);
-    return client;
-}
-const snsClient = makeSNSClient();
-
-// since ddb can only take 25 items at a time, split into chunks
-const splitItemsChunks = (arr, chunkSize=25) => {
-    const res = [];
-    for (let i = 0; i < arr.length; i += chunkSize) {
-        const chunk = arr.slice(i, i + chunkSize);
-        res.push(chunk);
-    }
-    return res;
-}
 
 exports.handler = async (event, context) => {
     const response = {
@@ -131,14 +112,51 @@ exports.handler = async (event, context) => {
 
         await dbClient.putItem(params).promise();
 
-        params = {
-            Message: `${pickedCryptoId} ${tickerId}`,
-            TopicArn: HistoricalDataTopicArn
-        }
-        console.log("Posting topic", params);
+        // POSTGRES
+        const client = new Client();
+        await client.connect();
+        console.log("Connected to postgres")
 
-        const publishResp = await snsClient.publish(params).promise();
-        console.log(publishResp);
+        const createTickerQuery = `INSERT INTO tickers (
+            ticker_id,
+            ticker_name,
+            symbol,
+            current_price,
+            twenty_four_hour_change,
+            market_cap,
+            volume,
+            image_url,
+            coin_id)
+        VALUES (
+            '${tickerId}',
+            '${coinDataFetch['name']}',
+            '${coinDataFetch['symbol']}',
+            '${coinDataFetch['market_data']['current_price']['gbp']}',
+            '${coinDataFetch['market_data']['price_change_24h']}',
+            '${coinDataFetch['market_data']['market_cap']['gbp']}',
+            '${coinDataFetch['market_data']['total_volume']['gbp']}',
+            '${coinDataFetch['image']['large']}',
+            '${pickedCryptoId}'
+        )`;
+        console.log(`Ticker query: ${createTickerQuery}`);
+        const createTickerResp = await client.query(createTickerQuery);
+        console.log(createTickerResp);
+
+        const createHoldingQuery = `INSERT INTO holdings (
+            holding_id,
+            units,
+            ticker_id)
+        VALUES (
+            '${uuidv4()}',
+            '0',
+            '${tickerId}'
+        )`;
+        console.log(`Holding query: ${createHoldingQuery}`);
+        const createHoldingResp = await client.query(createHoldingQuery);
+        console.log(createHoldingResp);
+
+        await client.end();
+        // POSTGRES
 
         response.statusCode = 200;
         response.body = "Success";

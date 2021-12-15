@@ -222,12 +222,12 @@ export default function HoldingsTable(props) {
 
     const rows = props.holdings.map(holding => {
         return createData(
-            holding['id']['S'],
-            holding['name']['S'],
-            holding['symbol']['S'],
-            holding['units']['N'],
-            holding['currentPrice']['N'],
-            holding['marketValue']['N'],
+            holding['holding_id'],
+            holding['ticker_name'],
+            holding['symbol'],
+            holding['units'],
+            holding['current_price'],
+            holding['market_value'],
         );
     });
 

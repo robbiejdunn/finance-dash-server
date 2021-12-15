@@ -1,19 +1,4 @@
-const AWS = require('aws-sdk');
-const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
-
-let dynamoDbClient;
-const makeClient = () => {
-    const options = {
-        region: 'eu-west-2'
-    };
-    if(process.env.LOCALSTACK_HOSTNAME) {
-        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
-    }
-    dynamoDbClient = new AWS.DynamoDB(options);
-    return dynamoDbClient;
-};
-const dbClient = makeClient()
-
+const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
     const response = {
@@ -24,16 +9,29 @@ exports.handler = async (event, context) => {
         }
     }
     try {
-        const params = {
-            TableName: HoldingsTableName,
-            ProjectionExpression: 'id, #n, symbol, units, currentPrice, marketValue',
-            ExpressionAttributeNames: {
-                '#n': 'name'
-            }
-        };
-        const data = await dbClient.scan(params).promise();
+        const client = new Client();
+        await client.connect();
+        console.log("Connected to postgres")
+
+        const listHoldingsQuery = `SELECT 
+            holdings.holding_id AS holding_id,
+            tickers.ticker_name AS ticker_name,
+            tickers.symbol AS symbol,
+            holdings.units AS units,
+            tickers.current_price AS current_price
+         FROM holdings INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id`;
+        console.log(`List holdings query: ${listHoldingsQuery}`);
+        const listHoldingsResp = await client.query(listHoldingsQuery);
+        console.log(listHoldingsResp);
+
+        await client.end();
+
         response.statusCode = 200;
-        response.body = JSON.stringify(data);
+        response.body = JSON.stringify({
+            items: listHoldingsResp.rows.map(
+                obj => ({ ...obj, market_value: `${obj.units * obj.current_price}` })
+            )
+        });
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

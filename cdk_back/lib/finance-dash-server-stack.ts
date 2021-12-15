@@ -118,7 +118,6 @@ export class FinanceDashServerStack extends Stack {
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
                 'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
                 'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
-                'PGDATABASE': postgresDB.secret?.secretValueFromJson('dbInstanceIdentifier').toString()!,
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
@@ -167,7 +166,11 @@ export class FinanceDashServerStack extends Stack {
             ),
             timeout: Duration.seconds(10),
             environment: {
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -236,6 +239,11 @@ export class FinanceDashServerStack extends Stack {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 'HISTORICAL_TOPIC_ARN': historicalDataTopic.topicArn,
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -255,7 +263,6 @@ export class FinanceDashServerStack extends Stack {
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantWriteData(createTickerPricesCronFunction);
-        holdingsTable.grantReadData(listHoldingsFunction);
         holdingsTable.grantReadData(getHoldingFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
         holdingsTable.grantReadData(createTickerPricesCronFunction);
