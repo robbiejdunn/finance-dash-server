@@ -109,10 +109,7 @@ export class FinanceDashServerStack extends Stack {
         const initDBFunction = new Function(this, 'InitDBFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/init-db', 
-                'lambdas/init-db',
-            ),
+            code: Code.fromAsset('lambdas/init-db'),
             timeout: Duration.minutes(10),
             environment: {
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
@@ -126,10 +123,7 @@ export class FinanceDashServerStack extends Stack {
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-holding', 
-                'lambdas/get-holding',
-            ),
+            code: Code.fromAsset('lambdas/get-holding'),
             timeout: Duration.seconds(10),
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
@@ -143,10 +137,7 @@ export class FinanceDashServerStack extends Stack {
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 
-                'lambdas/create-ticker-prices-cron',
-            ),
+            code: Code.fromAsset('lambdas/create-ticker-prices-cron'),
             timeout: Duration.seconds(120),
             environment: {
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
@@ -161,10 +152,7 @@ export class FinanceDashServerStack extends Stack {
         const listHoldingsFunction = new Function(this, 'ListHoldingsFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/list-holdings', 
-                'lambdas/list-holdings',
-            ),
+            code: Code.fromAsset('lambdas/list-holdings'),
             timeout: Duration.seconds(10),
             environment: {
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
@@ -179,10 +167,7 @@ export class FinanceDashServerStack extends Stack {
         const createTransactionFunction = new Function(this, 'CreateTransactionFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-transaction', 
-                'lambdas/create-transaction',
-            ),
+            code: Code.fromAsset('lambdas/create-transaction'),
             timeout: Duration.seconds(10),
             environment: {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
@@ -194,10 +179,7 @@ export class FinanceDashServerStack extends Stack {
         const getPortfolioFullFunction = new Function(this, 'GetPortfolioFullFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-portfolio-full', 
-                'lambdas/get-portfolio-full', 
-            ),
+            code: Code.fromAsset('lambdas/get-portfolio-full'),
             timeout: Duration.seconds(10),
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
@@ -211,10 +193,7 @@ export class FinanceDashServerStack extends Stack {
         const getCoinHistoricalFunction = new Function(this, 'GetCoinHistoricalFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/get-coin-historical', 
-                'lambdas/get-coin-historical', 
-            ),
+            code: Code.fromAsset('lambdas/get-coin-historical'),
             timeout: Duration.seconds(120),
             environment: {
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
@@ -231,10 +210,7 @@ export class FinanceDashServerStack extends Stack {
         const createHoldingFunction = new Function(this, 'CreateHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
-            code: this.getLambdaCode(
-                '/home/robbie/dev/aws/finance-dash-server/lambdas/create-holding', 
-                'lambdas/create-holding', 
-            ),
+            code: Code.fromAsset('lambdas/create-holding'),
             timeout: Duration.seconds(10),
             environment: {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
@@ -308,9 +284,5 @@ export class FinanceDashServerStack extends Stack {
 
         const portfolioApiResource = api.root.addResource('portfolio');
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
-    }
-
-    private getLambdaCode(local_fp: string, asset_p: string): Code {
-        return Code.fromAsset(asset_p);
     }
 }
