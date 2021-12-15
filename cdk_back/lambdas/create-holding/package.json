@@ -8,8 +8,8 @@
     },
     "author": "Robbie Dunn",
     "dependencies": {
-        "aws-sdk": "*",
         "axios": "^0.21.1",
+        "pg": "^8.7.1",
         "uuid": "*"
     }
 }

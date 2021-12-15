@@ -1,24 +1,4 @@
-const AWS = require('aws-sdk');
-
-
-const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
-const TransactionsTableName = process.env.TRANSACTIONS_TABLE_NAME;
-const TickersTableName = process.env.TICKERS_TABLE_NAME;
-const TickerPricesTableName = process.env.TICKER_PRICES_TABLE_NAME;
-
-
-const makeClient = () => {
-    const options = {
-        region: 'eu-west-2'
-    };
-    if(process.env.LOCALSTACK_HOSTNAME) {
-        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
-    }
-    const dynamoDbClient = new AWS.DynamoDB(options);
-    return dynamoDbClient;
-};
-const dbClient = makeClient()
-
+const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
     const response = {
@@ -29,34 +9,40 @@ exports.handler = async (event, context) => {
         }
     };
     try {
-        let params = {
-            TableName: HoldingsTableName
-        };
-        const holdings = await dbClient.scan(params).promise();
+        console.log('Received event:', JSON.stringify(event, null, 2));
 
-        params = {
-            TableName: TransactionsTableName
-        };
-        const transactions = await dbClient.scan(params).promise();
+        const client = new Client();
+        await client.connect();
 
-        params = {
-            TableName: TickerPricesTableName
-        };
-        const tickerPrices = await dbClient.scan(params).promise();
+        // Get holdings (joined with ticker)
+        const getHoldingsQuery = `
+            SELECT * FROM get_holding_view
+        `;
+        const getHoldingsRes = await client.query(getHoldingsQuery);
+        console.log(getHoldingsRes);
 
-        params = {
-            TableName: TickersTableName
-        };
-        const tickers = await dbClient.scan(params).promise();
+        // Get transactions
+        const getTransactionsQuery = `
+            SELECT * FROM transactions
+        `;
+        const getTransactionsRes = await client.query(getTransactionsQuery);
+        console.log(getTransactionsRes);
+
+        // Get ticker prices
+        const getTickerPricesQuery = `
+            SELECT * FROM ticker_prices
+        `;
+        const getTickerPricesRes = await client.query(getTickerPricesQuery);
+        console.log(getTickerPricesRes);
+
+        await client.end();
 
         response.statusCode = 200;
         response.body = JSON.stringify({
-            holdings: holdings,
-            transactions: transactions,
-            tickerPrices: tickerPrices,
-            tickers: tickers,
-        })
-        console.log(response)
+            holdings: getHoldingsRes.rows,
+            transactions: getTransactionsRes.rows,
+            tickerPrices: getTickerPricesRes.rows,
+        });
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

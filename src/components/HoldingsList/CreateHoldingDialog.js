@@ -97,13 +97,7 @@ export default function CreateHoldingDialog(props) {
         const data = {
             coinId: selected.id,
         };
-        let endpoint;
-        if(process.env['NODE_ENV'] && process.env['NODE_ENV'] === 'development') {
-            const apiId = process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT.split('.')[0].replace('https://', '');
-            endpoint = `http://localhost:4566/restapis/${apiId}/prod/_user_request_/holdings`
-        } else {
-            endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings`
-        }
+        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings`;
         axios.post(
             endpoint, 
             data,

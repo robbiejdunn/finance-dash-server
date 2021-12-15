@@ -24,13 +24,7 @@ const useStyles = makeStyles((theme) => ({
 export default function CreateTransactionDialog(props) {
     const classes = useStyles();
 
-    let endpoint;
-    if(process.env['NODE_ENV'] && process.env['NODE_ENV'] === 'development') {
-        const apiId = process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT.split('.')[0].replace('https://', '');
-        endpoint = `http://localhost:4566/restapis/${apiId}/prod/_user_request_/transactions`
-    } else {
-        endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions`
-    }
+    const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions`;
     
     const [open, setOpen] = React.useState(false);
     const [buySell, setBuySell] = React.useState('BUY');

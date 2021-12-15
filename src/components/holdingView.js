@@ -111,7 +111,6 @@ export default function HoldingView() {
     const [currentPrice, setCurrentPrice] = useState(0);
     const [tickerId, setTickerId] = useState('');
     const [imageUrl, setImageUrl] = useState('');
-    const [description, setDescription] = useState('');
     const [tickerPrices, setTickerPrices] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [twentyFourHrChange, setTwentyFourHrChange] = useState(0);
@@ -119,29 +118,23 @@ export default function HoldingView() {
     const [marketCap, setMarketCap] = useState(0);
 
     useEffect(() => {
-        let endpoint;
-        if(process.env['NODE_ENV'] && process.env['NODE_ENV'] === 'development') {
-            const apiId = process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT.split('.')[0].replace('https://', '');
-            endpoint = `http://localhost:4566/restapis/${apiId}/prod/_user_request_/holdings?id=${holdingId}`;
-        } else {
-            endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
-        }
+        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
         axios.get(endpoint)
         .then(res => {
-            setName(res.data.holding.Item.name.S);
-            setSymbol(res.data.holding.Item.symbol.S);
-            setUnits(res.data.holding.Item.units.N);
-            setCurrentPrice(res.data.holding.Item.currentPrice.N);
-            setTickerId(res.data.holding.Item.tickerId.S);
-            setImageUrl(res.data.ticker.Item.imageUrl.S);
-            setDescription(res.data.ticker.Item.description.S);
-            setTickerPrices(res.data.tickerPrices.Items.map((p) => {
-                return [new Date(p.datetime.S), parseFloat(p.price.N)]
+            console.log(res);
+            setName(res.data.holding.ticker_name);
+            setSymbol(res.data.holding.ticker_symbol);
+            setUnits(res.data.holding.units);
+            setCurrentPrice(res.data.holding.current_price);
+            setTickerId(res.data.holding.ticker_id);
+            setImageUrl(res.data.holding.image_url);
+            setTwentyFourHrChange(res.data.holding.twenty_four_hour_change);
+            setTwentyFourHrVolume(res.data.holding.volume);
+            setMarketCap(res.data.holding.market_cap);
+            setTickerPrices(res.data.tickerPrices.map((p) => {
+                return [new Date(p.datetime), parseFloat(p.price)]
             }));
-            setTransactions(res.data.transactions.Items);
-            setTwentyFourHrChange(res.data.holding.Item.twentyFourHourChange.N);
-            setTwentyFourHrVolume(res.data.holding.Item.volume.N);
-            setMarketCap(res.data.holding.Item.marketCap.N);
+            setTransactions(res.data.transactions);
         });
     }, []);
 
@@ -205,11 +198,6 @@ export default function HoldingView() {
                         <div className={classes.flexLogo}>
                             <img src={imageUrl} className={classes.logo} ></img>
                         </div>
-                    </div>
-                    <Divider className={classes.divider}></Divider>
-                    <div>
-                        <Typography variant='body2' dangerouslySetInnerHTML={{__html: `<div>${description}</div>`}}>
-                        </Typography>
                     </div>
                     <Divider className={classes.divider}></Divider>
                     <TransactionsTable transactions={transactions} currentPrice={currentPrice} holdingId={holdingId}></TransactionsTable>

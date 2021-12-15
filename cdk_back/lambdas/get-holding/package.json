@@ -8,6 +8,6 @@
     },
     "author": "Robbie Dunn",
     "dependencies": {
-        "aws-sdk": "*"
+        "pg": "^8.7.1"
     }
 }
