@@ -17,27 +17,28 @@ export default function PortfolioGraph(props) {
 
     useEffect(() => {
         if(props.holdingsJoined) {
+            console.log(props.holdingsJoined)
             let portData = []
             Object.entries(props.holdingsJoined).map(([holdingId, holding]) => {
                 let holdingPrices = [];
                 let sortedTxDateValues = null;
                 if(holding.transactions) {
                     sortedTxDateValues = [...holding.transactions].sort((a, b) => {
-                        if(a.datetime.S > b.datetime.S) {
+                        if(a.datetime > b.datetime) {
                             return 1;
-                        } else if (b.datetime.S > a.datetime.S) {
+                        } else if (b.datetime > a.datetime) {
                             return -1;
                         } else {
                             return 0;
                         }
                     });
                 }
-                holding?.ticker?.prices?.map((tickerPrice) => {
+                holding?.t_prices?.map((tickerPrice) => {
                     holdingPrices.push({
-                        x: tickerPrice.datetime.S,
+                        x: tickerPrice.datetime,
                         // x: new Date(tickerPrice.datetime.S),
                         // x: tickerPrice.datetime.S.slice(0, 16).replace("T", " "),
-                        y: tickerPrice.price.N,
+                        y: tickerPrice.price,
                         color: holding?.color,
                     });
                 });
@@ -48,8 +49,8 @@ export default function PortfolioGraph(props) {
                 if(sortedTxDateValues) {
                     holdingPrices.map((price) => {
                         if(currentTx != sortedTxDateValues.length) {
-                            while(price.x >= sortedTxDateValues[currentTx].datetime.S) {
-                                currentUnits += parseFloat(sortedTxDateValues[currentTx].units.N);
+                            while(price.x >= sortedTxDateValues[currentTx].datetime) {
+                                currentUnits += parseFloat(sortedTxDateValues[currentTx].units);
                                 currentTx += 1;
                                 if(currentTx === sortedTxDateValues.length) {
                                     break
@@ -58,7 +59,7 @@ export default function PortfolioGraph(props) {
                         }
                         price.y = price.y * currentUnits;
                     })
-                    portData.push([holding.name.S, holdingPrices]);
+                    portData.push([holding.ticker_name, holdingPrices]);
                 }
 
                 

@@ -18,64 +18,60 @@ export default function Dashboard(props) {
             console.log(res);
             let holdingsDict = {};
             
-            // maps holdings to their chart color
+            // Maps holdings to their chart color
             let colorIndex = 0;
             res.data.holdings.map((holding) => {
                 const currColor = category20Colors[colorIndex++];
                 
-                holding.market_value.N = holding.units.N * holding.current_price.N;
+                holding.market_value = holding.units * holding.current_price;
 
-                if(holding.market_value.N > 0) {
+                if(holding.market_value > 0) {
                     holdingsDict[holding.holding_id] = {...holding, color: currColor};
                 }
             });
             console.log(holdingsDict);
 
-            // join transactions to holdings
-            res.data.transactions.Items.map((transaction) => {
-                if(holdingsDict[transaction.holdingId.S]) {
-                    if(holdingsDict[transaction.holdingId.S].transactions) {
-                        holdingsDict[transaction.holdingId.S].transactions.push(transaction);
+            // Join transactions to holdings
+            res.data.transactions.map((transaction) => {
+                if(holdingsDict[transaction.holding_id]) {
+                    if(holdingsDict[transaction.holding_id].transactions) {
+                        holdingsDict[transaction.holding_id].transactions.push(transaction);
                     } else {
-                        holdingsDict[transaction.holdingId.S].transactions = [transaction];
+                        holdingsDict[transaction.holding_id].transactions = [transaction];
                     }
                 }
             });
+            console.log(holdingsDict);
             
-            let tickersDict = {};
-            res.data.tickers.Items.map((ticker) => {
-                tickersDict[ticker.id.S] = ticker;
-            });
-
-            // join ticker prices to ticker
-            res.data.tickerPrices.Items.map((tickerPrice) => {
-                if(tickersDict[tickerPrice.tickerId.S].prices) {
-                    tickersDict[tickerPrice.tickerId.S].prices.push(tickerPrice);
+            // Join ticker prices to tickers
+            let tickerPricesDict = {};
+            res.data.tickerPrices.map((tp) => {
+                if (tickerPricesDict[tp.ticker_id]) {
+                    tickerPricesDict[tp.ticker_id].push(tp);
                 } else {
-                    tickersDict[tickerPrice.tickerId.S].prices = [tickerPrice];
+                    tickerPricesDict[tp.ticker_id] = [tp];
                 }
             });
-            
-            // join holdings to tickers
+            console.log(tickerPricesDict);
             Object.entries(holdingsDict).map(([key, val]) => {
-                holdingsDict[key].ticker = tickersDict[val.tickerId.S];
-            })
+                holdingsDict[key].t_prices = tickerPricesDict[val.ticker_id];
+            });
 
             setHoldings(res.data.holdings);
             setTransactions(res.data.transactions);
-            const holdingsValues = res.data.holdings.Items.map((holding) => {
-                return holding.marketValue.N;
+            const holdingsValues = res.data.holdings.map((holding) => {
+                return holding.market_value;
             });
             // using unary plus operator see https://stackoverflow.com/questions/8976627/how-to-add-two-strings-as-if-they-were-numbers
             setPortfolioValue(holdingsValues.reduce((a, b) => +a + +b));
             setHoldingsJoined(holdingsDict);
             setPieChartData(Object.entries(holdingsDict).filter(([id, holding]) => {
-                return parseInt(holding.marketValue.N) > 0
+                return parseInt(holding.market_value) > 0
             }).map(([k, v]) => {
                 return {
-                    marketValue: v.marketValue.N,
-                    symbol: v.symbol.S,
-                    units: v.units.N,
+                    marketValue: v.market_value,
+                    symbol: v.ticker_symbol,
+                    units: v.units,
                     color: v.color,
                 }
             }));

@@ -1,13 +1,8 @@
 import { Cors, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
-import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
-import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
-import { Bucket, IBucket } from '@aws-cdk/aws-s3';
+import { Architecture, Code, Function, Runtime } from '@aws-cdk/aws-lambda';
 import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
-import { strict } from 'assert';
-import { Topic } from '@aws-cdk/aws-sns';
-import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
@@ -18,13 +13,14 @@ export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
         super(scope, id, props);
 
+        // although this is fine for now, it should eventually be placed in a 
+        // private / isolated VPC subnet
         const vpc = new ec2.Vpc(this, 'VPC', {
             cidr: '10.0.0.0/24',
             maxAzs: 2,
             natGateways: 0,
             subnetConfiguration: [
                 {
-                    // cidrMask: 24,
                     name: 'public',
                     subnetType: ec2.SubnetType.PUBLIC,
                 }
@@ -38,6 +34,7 @@ export class FinanceDashServerStack extends Stack {
         });
 
         const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
+            // this version or below is required to run pg T2 micro instances
             engine: rds.DatabaseInstanceEngine.postgres({
                 version: rds.PostgresEngineVersion.VER_12_8,
             }),
@@ -64,45 +61,6 @@ export class FinanceDashServerStack extends Stack {
             'Allow all incoming access'
         );
 
-        // Ticker DDB table
-        const tickerTable = new Table(this, 'TickerTable', {
-            partitionKey: {name: 'id', type: AttributeType.STRING},
-            // sortKey: {name: 'name', type: AttributeType.STRING},
-            /**
-            *  The default removal policy is RETAIN, which means that cdk destroy will not attempt to delete
-            * the new table, and it will remain in your account until manually deleted. By setting the policy to
-            * DESTROY, cdk destroy will delete the table (even if it has data in it)
-            */
-            removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
-        });
-
-        const tickerPriceTable = new Table(this, 'TickerPriceTable', {
-            partitionKey: {name: 'id', type: AttributeType.STRING},
-            removalPolicy: RemovalPolicy.DESTROY
-        });
-        
-        tickerPriceTable.addGlobalSecondaryIndex({
-            indexName: 'TickerPricesByTickerIDIndex',
-            partitionKey: {name: 'tickerId', type: AttributeType.STRING},
-            sortKey: {name: 'datetime', type: AttributeType.STRING}
-        });
-
-        const transactionTable = new Table(this, 'TransactionTable', {
-            partitionKey: {name: 'id', type: AttributeType.STRING},
-            removalPolicy: RemovalPolicy.DESTROY
-        })
-
-        transactionTable.addGlobalSecondaryIndex({
-            indexName: 'TransactionByHoldingIDIndex',
-            partitionKey: {name: 'holdingId', type: AttributeType.STRING},
-            sortKey: {name: 'datetime', type: AttributeType.STRING}
-        })
-
-        const holdingsTable = new Table(this, 'HoldingsTable', {
-            partitionKey: {name: 'id', type: AttributeType.STRING},
-            removalPolicy: RemovalPolicy.DESTROY,
-        })
-
         const initDBFunction = new Function(this, 'InitDBFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
@@ -115,6 +73,7 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
 
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
@@ -130,6 +89,7 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
 
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
@@ -145,6 +105,7 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
 
         const listHoldingsFunction = new Function(this, 'ListHoldingsFunction', {
@@ -160,6 +121,7 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
         
         const createTransactionFunction = new Function(this, 'CreateTransactionFunction', {
@@ -175,6 +137,7 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
 
         const getPortfolioFullFunction = new Function(this, 'GetPortfolioFullFunction', {
@@ -190,24 +153,8 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
-
-        const getCoinHistoricalFunction = new Function(this, 'GetCoinHistoricalFunction', {
-            runtime: Runtime.NODEJS_14_X,
-            handler: 'app.handler',
-            code: Code.fromAsset('lambdas/get-coin-historical'),
-            timeout: Duration.seconds(120),
-            environment: {
-                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
-            },
-            logRetention: RetentionDays.ONE_WEEK,
-        });
-
-        const historicalDataTopic = new Topic(this, 'HistoricalDataTopic', {
-            displayName: 'Historical data topic',
-        });
-
-        // historicalDataTopic.addSubscription(new LambdaSubscription(getCoinHistoricalFunction));
 
         const createHoldingFunction = new Function(this, 'CreateHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
@@ -222,11 +169,8 @@ export class FinanceDashServerStack extends Stack {
                 'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
         });
-
-        historicalDataTopic.grantPublish(createHoldingFunction);
-
-        tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 

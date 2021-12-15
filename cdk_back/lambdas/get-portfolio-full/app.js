@@ -21,35 +21,28 @@ exports.handler = async (event, context) => {
         const getHoldingsRes = await client.query(getHoldingsQuery);
         console.log(getHoldingsRes);
 
+        // Get transactions
+        const getTransactionsQuery = `
+            SELECT * FROM transactions
+        `;
+        const getTransactionsRes = await client.query(getTransactionsQuery);
+        console.log(getTransactionsRes);
+
+        // Get ticker prices
+        const getTickerPricesQuery = `
+            SELECT * FROM ticker_prices
+        `;
+        const getTickerPricesRes = await client.query(getTickerPricesQuery);
+        console.log(getTickerPricesRes);
+
         await client.end();
-        
-        // let params = {
-        //     TableName: HoldingsTableName
-        // };
-        // const holdings = await dbClient.scan(params).promise();
-
-        // params = {
-        //     TableName: TransactionsTableName
-        // };
-        // const transactions = await dbClient.scan(params).promise();
-
-        // params = {
-        //     TableName: TickerPricesTableName
-        // };
-        // const tickerPrices = await dbClient.scan(params).promise();
-
-        // params = {
-        //     TableName: TickersTableName
-        // };
-        // const tickers = await dbClient.scan(params).promise();
 
         response.statusCode = 200;
         response.body = JSON.stringify({
             holdings: getHoldingsRes.rows,
-            // transactions: transactions,
-            // tickerPrices: tickerPrices,
-            // tickers: tickers,
-        })
+            transactions: getTransactionsRes.rows,
+            tickerPrices: getTickerPricesRes.rows,
+        });
     } catch (err) {
         console.log(err);
         response.statusCode = 500;
