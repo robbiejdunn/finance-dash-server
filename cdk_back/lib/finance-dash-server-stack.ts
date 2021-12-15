@@ -8,12 +8,62 @@ import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 import { strict } from 'assert';
 import { Topic } from '@aws-cdk/aws-sns';
 import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
-
+import { RetentionDays } from '@aws-cdk/aws-logs';
+import { CustomResource } from '@aws-cdk/core';
+import { Provider } from '@aws-cdk/custom-resources';
+import * as ec2 from '@aws-cdk/aws-ec2';
+import * as rds from '@aws-cdk/aws-rds';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
         super(scope, id, props);
-        
+
+        const vpc = new ec2.Vpc(this, 'VPC', {
+            cidr: '10.0.0.0/24',
+            maxAzs: 2,
+            natGateways: 0,
+            subnetConfiguration: [
+                {
+                    // cidrMask: 24,
+                    name: 'public',
+                    subnetType: ec2.SubnetType.PUBLIC,
+                }
+            ],
+        });
+
+        const postgresSecurityGroup = new ec2.SecurityGroup(this, 'Postgres Security Group', {
+            vpc,
+            description: 'Allow all incoming access',
+            allowAllOutbound: true,
+        });
+
+        const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
+            engine: rds.DatabaseInstanceEngine.postgres({
+                version: rds.PostgresEngineVersion.VER_12_8,
+            }),
+            instanceType: ec2.InstanceType.of(
+                ec2.InstanceClass.T2,
+                ec2.InstanceSize.MICRO
+            ),
+            vpc,
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PUBLIC
+            },
+            allocatedStorage: 20,
+            backupRetention: Duration.days(0),
+            cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
+            multiAz: false,
+            removalPolicy: RemovalPolicy.DESTROY,
+            credentials: rds.Credentials.fromGeneratedSecret('postgres'),
+            securityGroups: [postgresSecurityGroup],
+        });
+
+        postgresSecurityGroup.addIngressRule(
+            ec2.Peer.anyIpv4(),
+            ec2.Port.tcp(5432),
+            'Allow all incoming access'
+        );
+
         // Ticker DDB table
         const tickerTable = new Table(this, 'TickerTable', {
             partitionKey: {name: 'id', type: AttributeType.STRING},
@@ -56,6 +106,24 @@ export class FinanceDashServerStack extends Stack {
         // this is for mounting code when running with localstack
         // const localBucket = Bucket.fromBucketName(this, 's3local', 'local');
 
+        const initDBFunction = new Function(this, 'InitDBFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: this.getLambdaCode(
+                '/home/robbie/dev/aws/finance-dash-server/lambdas/init-db', 
+                'lambdas/init-db',
+            ),
+            timeout: Duration.minutes(10),
+            environment: {
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': postgresDB.secret?.secretValueFromJson('dbInstanceIdentifier').toString()!,
+                'PGPORT': '5432',
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+        });
+
         const getHoldingFunction = new Function(this, 'GetHoldingFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
@@ -69,7 +137,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const createTickerPricesCronFunction = new Function(this, 'CreateTickerPricesCronFunction', {
@@ -85,7 +154,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 // 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const listHoldingsFunction = new Function(this, 'ListHoldingsFunction', {
@@ -98,7 +168,8 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(10),
             environment: {
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
         
         const createTransactionFunction = new Function(this, 'CreateTransactionFunction', {
@@ -112,7 +183,8 @@ export class FinanceDashServerStack extends Stack {
             environment: {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const getPortfolioFullFunction = new Function(this, 'GetPortfolioFullFunction', {
@@ -128,7 +200,8 @@ export class FinanceDashServerStack extends Stack {
                 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const getCoinHistoricalFunction = new Function(this, 'GetCoinHistoricalFunction', {
@@ -141,7 +214,8 @@ export class FinanceDashServerStack extends Stack {
             timeout: Duration.seconds(120),
             environment: {
                 'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         const historicalDataTopic = new Topic(this, 'HistoricalDataTopic', {
@@ -162,7 +236,8 @@ export class FinanceDashServerStack extends Stack {
                 'TICKERS_TABLE_NAME': tickerTable.tableName,
                 'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
                 'HISTORICAL_TOPIC_ARN': historicalDataTopic.topicArn,
-            }
+            },
+            logRetention: RetentionDays.ONE_WEEK,
         });
 
         historicalDataTopic.grantPublish(createHoldingFunction);
@@ -195,6 +270,12 @@ export class FinanceDashServerStack extends Stack {
             schedule: Schedule.cron({minute: '0/10'}),
             targets: [createTickerPricesCronTarget]
         });
+
+        const dbInitProvider = new Provider(this, 'DBInitProvider', {
+            onEventHandler: initDBFunction,
+            logRetention: RetentionDays.ONE_WEEK,
+        })
+        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);

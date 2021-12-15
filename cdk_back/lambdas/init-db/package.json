@@ -1,0 +1,14 @@
+{
+    "name": "finance-dash-server-init-db",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Robbie Dunn",
+    "dependencies": {
+        "cfn-response": "^1.0.1",
+        "pg": "^8.7.1"
+    }
+}
