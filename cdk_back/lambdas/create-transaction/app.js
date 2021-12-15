@@ -1,22 +1,5 @@
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-const TransactionsTableName = process.env.TRANSACTIONS_TABLE_NAME;
-const HoldingsTableName = process.env.HOLDINGS_TABLE_NAME;
-
-// TODO: move to utils / shared location
-let dynamoDbClient;
-const makeClient = () => {
-    const options = {
-        region: 'eu-west-2'
-    };
-    if(process.env.LOCALSTACK_HOSTNAME) {
-        options.endpoint = `http://${process.env.LOCALSTACK_HOSTNAME}:${process.env.EDGE_PORT}`;
-    }
-    console.log(`Connecting to AWS DynamoDB at ${options.endpoint}`)
-    dynamoDbClient = new AWS.DynamoDB(options);
-    return dynamoDbClient;
-};
-const dbClient = makeClient()
+const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
     const response = {
@@ -28,50 +11,48 @@ exports.handler = async (event, context) => {
     }
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
-        requestData = JSON.parse(event.body);
-        let params = {
-            TableName: TransactionsTableName,
-            Item: {
-                'id': {
-                    S: uuidv4()
-                },
-                'holdingId': {
-                    S: requestData.holdingId
-                },
-                'datetime': {
-                    S: new Date(requestData.datetime).toISOString()
-                },
-                'buySell': {
-                    S: requestData.buySell
-                },
-                'units': {
-                    N: requestData.units
-                },
-                'price': {
-                    N: requestData.price
-                }
-            }
+        const requestData = JSON.parse(event.body);
+
+        const client = new Client();
+        await client.connect();
+
+        // Insert transaction row
+        const insertTransactionQuery = `
+            INSERT INTO transactions (
+                tx_id,
+                holding_id,
+                datetime,
+                buy_sell,
+                units,
+                price
+            ) VALUES (
+                '${uuidv4()}',
+                '${requestData.holdingId}',
+                '${new Date(requestData.datetime).toISOString()}',
+                '${requestData.buySell}',
+                '${requestData.units}',
+                '${requestData.price}'
+            )
+        `;
+        console.log(`Transaction insert query: ${insertTransactionQuery}`);
+        const insertTransactionRes = await client.query(insertTransactionQuery);
+        console.log(insertTransactionRes);
+
+        // Update holding units
+        let updateOp = '-';
+        if (requestData.buySell === 'BUY') {
+            updateOp = '+';
         }
-        await dbClient.putItem(params).promise();
-        params = {
-            TableName: HoldingsTableName,
-            Key: {
-                'id': {
-                    S: requestData.holdingId
-                }
-            },
-            ExpressionAttributeValues: {
-                ':increment': {
-                    N: requestData.units
-                }
-            }
-        }
-        if(requestData.buySell === 'BUY') {
-            params.UpdateExpression = 'SET units = units + :increment'
-        } else {
-            params.UpdateExpression = 'SET units = units - :increment'
-        }
-        await dbClient.updateItem(params).promise();
+        const updateHoldingUnitsQuery = `
+            UPDATE holdings
+            SET units = units ${updateOp} ${requestData.units}
+            WHERE holding_id = '${requestData.holdingId}'
+        `;
+        console.log(`Holding units update query: ${updateHoldingUnitsQuery}`);
+        const updateHoldingUnitsRes = await client.query(updateHoldingUnitsQuery);
+        console.log(updateHoldingUnitsRes);
+
+        await client.end();
 
         response.statusCode = 200;
         response.body = "Success"

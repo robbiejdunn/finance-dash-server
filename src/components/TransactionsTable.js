@@ -210,12 +210,12 @@ export default function TransactionsTable(props) {
 
     const rows = props.transactions.map(tx => (
         createData(
-            tx['id']['S'],
-            tx['datetime']['S'], 
-            tx['buySell']['S'], 
-            tx['units']['N'], 
-            tx['price']['N'],
-            (props.currentPrice * tx['units']['N']) - tx['price']['N']
+            tx['tx_id'],
+            tx['datetime'], 
+            tx['buy_sell'], 
+            tx['units'], 
+            tx['price'],
+            (props.currentPrice * tx['units']) - tx['price']
         )
     ));
 

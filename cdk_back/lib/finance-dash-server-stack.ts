@@ -171,8 +171,11 @@ export class FinanceDashServerStack extends Stack {
             code: Code.fromAsset('lambdas/create-transaction'),
             timeout: Duration.seconds(10),
             environment: {
-                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -214,9 +217,6 @@ export class FinanceDashServerStack extends Stack {
             code: Code.fromAsset('lambdas/create-holding'),
             timeout: Duration.seconds(10),
             environment: {
-                'TICKERS_TABLE_NAME': tickerTable.tableName,
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-                'HISTORICAL_TOPIC_ARN': historicalDataTopic.topicArn,
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
                 'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
                 'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
@@ -228,17 +228,13 @@ export class FinanceDashServerStack extends Stack {
 
         historicalDataTopic.grantPublish(createHoldingFunction);
 
-        tickerTable.grantWriteData(createHoldingFunction);
         tickerTable.grantReadData(getPortfolioFullFunction);
 
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
-        holdingsTable.grantWriteData(createHoldingFunction);
-        holdingsTable.grantWriteData(createTransactionFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
 
-        transactionTable.grantWriteData(createTransactionFunction);
         transactionTable.grantReadData(getPortfolioFullFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
