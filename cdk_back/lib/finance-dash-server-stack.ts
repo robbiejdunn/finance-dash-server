@@ -4,7 +4,7 @@ import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket, IBucket } from '@aws-cdk/aws-s3';
-import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { App, Duration, RemovalPolicy, SecretValue, Stack, StackProps } from '@aws-cdk/core';
 import { strict } from 'assert';
 import { Topic } from '@aws-cdk/aws-sns';
 import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
@@ -13,6 +13,7 @@ import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -31,23 +32,11 @@ export class FinanceDashServerStack extends Stack {
             ],
         });
 
-        const postgresCreds = new rds.DatabaseSecret(this, 'Postgres Credentials', {
-            username: 'postgres',
-        });
-
-        const postgresCredsJSON = postgresCreds.secretValue.toJSON();
-
         const postgresSecurityGroup = new ec2.SecurityGroup(this, 'Postgres Security Group', {
             vpc,
             description: 'Allow all incoming access',
             allowAllOutbound: true,
         });
-
-        postgresSecurityGroup.addIngressRule(
-            ec2.Peer.anyIpv4(),
-            ec2.Port.tcp(postgresCredsJSON.port),
-            'Allow all incoming access'
-        );
 
         const postgresDB = new rds.DatabaseInstance(this, 'Postgres DB', {
             engine: rds.DatabaseInstanceEngine.postgres({
@@ -66,10 +55,27 @@ export class FinanceDashServerStack extends Stack {
             cloudwatchLogsRetention: RetentionDays.ONE_WEEK,
             multiAz: false,
             removalPolicy: RemovalPolicy.DESTROY,
-            credentials: rds.Credentials.fromSecret(postgresCreds),
+            credentials: rds.Credentials.fromGeneratedSecret('postgres'),
             securityGroups: [postgresSecurityGroup],
         });
-        
+
+        const postgresCreds = secretsmanager.Secret.fromSecretNameV2(
+            this,
+            'PostgresCreds',
+            postgresDB.secret?.secretName!
+        );
+
+        console.log(postgresDB.secret?.secretArn);
+        console.log(SecretValue.secretsManager(postgresDB.secret?.secretArn!))
+        console.log(postgresDB.secret?.secretValueFromJson('username').toString())
+
+        postgresSecurityGroup.addIngressRule(
+            ec2.Peer.anyIpv4(),
+            // ec2.Port.tcp(5432),
+            ec2.Port.tcp(5432),
+            'Allow all incoming access'
+        );
+
         // Ticker DDB table
         const tickerTable = new Table(this, 'TickerTable', {
             partitionKey: {name: 'id', type: AttributeType.STRING},
@@ -121,11 +127,11 @@ export class FinanceDashServerStack extends Stack {
             ),
             timeout: Duration.minutes(10),
             environment: {
-                'PGUSER': postgresCredsJSON.username,
-                'PGHOST': postgresCredsJSON.host,
-                'PGPASSWORD': postgresCredsJSON.password,
-                'PGDATABASE': postgresCredsJSON.dbInstanceIdentifier,
-                'PGPORT': postgresCredsJSON.port,
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': postgresDB.secret?.secretValueFromJson('dbInstanceIdentifier').toString()!,
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -277,11 +283,11 @@ export class FinanceDashServerStack extends Stack {
             targets: [createTickerPricesCronTarget]
         });
 
-        // const dbInitProvider = new Provider(this, 'DBInitProvider', {
-        //     onEventHandler: initDBFunction,
-        //     logRetention: RetentionDays.ONE_WEEK,
-        // })
-        // new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
+        const dbInitProvider = new Provider(this, 'DBInitProvider', {
+            onEventHandler: initDBFunction,
+            logRetention: RetentionDays.ONE_WEEK,
+        })
+        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
