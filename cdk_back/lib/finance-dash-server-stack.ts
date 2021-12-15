@@ -59,19 +59,8 @@ export class FinanceDashServerStack extends Stack {
             securityGroups: [postgresSecurityGroup],
         });
 
-        const postgresCreds = secretsmanager.Secret.fromSecretNameV2(
-            this,
-            'PostgresCreds',
-            postgresDB.secret?.secretName!
-        );
-
-        console.log(postgresDB.secret?.secretArn);
-        console.log(SecretValue.secretsManager(postgresDB.secret?.secretArn!))
-        console.log(postgresDB.secret?.secretValueFromJson('username').toString())
-
         postgresSecurityGroup.addIngressRule(
             ec2.Peer.anyIpv4(),
-            // ec2.Port.tcp(5432),
             ec2.Port.tcp(5432),
             'Allow all incoming access'
         );

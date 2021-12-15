@@ -18,15 +18,52 @@ exports.handler = async(event, context) => {
             port: process.env.PGPORT,
         });
         await createDbClient.connect();
-        const res = await createDbClient.query('CREATE DATABASE FinanceDashDB');
-        console.log(res);
+        try {
+            const res = await createDbClient.query('CREATE DATABASE financedashdb');
+            console.log(res);
+        }
+        catch (err) {
+            console.log(err);
+        }
         await createDbClient.end();
-        // connect to postgres RDS instance
-        // const client = new Client();
-        // await client.connect();
-        // const res = await client.query('CREATE TABLE transactions(did integer PRIMARY KEY, price integer, cname varchar(40))');
-        // console.log(res);
-        // await client.end();
+        const client = new Client({
+            user: process.env.PGUSER,
+            host: process.env.PGHOST,
+            database: 'financedashdb',
+            password: process.env.PGPASSWORD,
+            port: process.env.PGPORT,
+        });
+        await client.connect();
+        const createTickerRes = await client.query(
+            `CREATE TABLE tickers(
+                ticker_id                   varchar(40) PRIMARY KEY,
+                ticker_name                 varchar(40),
+                symbol                      varchar(40),
+                current_price               numeric,
+                twenty_four_hour_change     numeric,
+                market_cap                  numeric,
+                volume                      numeric,
+                image_url                   varchar(400),
+                coin_id                     varchar(40),
+                CONSTRAINT fk_ticker
+                    FOREIGN KEY(ticker_id)
+                        REFERENCES tickers(ticker_id)
+            )`
+        );
+        console.log(createTickerRes);
+        const createHoldingRes = await client.query(
+            `CREATE TABLE holdings(
+                holding_id                  varchar(40) PRIMARY KEY,
+                units                       numeric,
+                ticker_id                   varchar(40),
+                CONSTRAINT fk_ticker
+                    FOREIGN KEY(ticker_id)
+                        REFERENCES tickers(ticker_id)
+            )
+            `
+        );
+        console.log(createHoldingRes);
+        await client.end();
     }
     return response.send(event, context, responseStatus, {});
 };

@@ -21,7 +21,6 @@ const dbClient = makeClient()
 
 
 exports.handler = async (event, context) => {
-    console.log("test");
     const response = {
         headers: {
             'Access-Control-Allow-Headers' : 'Content-Type',

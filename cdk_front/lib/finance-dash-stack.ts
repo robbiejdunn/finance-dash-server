@@ -8,7 +8,7 @@ export class FinanceDashStack extends Stack {
 
         const siteBucket = new Bucket(this, 'SiteBucket', {
             websiteIndexDocument: 'index.html',
-            publicReadAccess: true
+            publicReadAccess: true,
         });
 
         new BucketDeployment(this, 'DeploySite', {
