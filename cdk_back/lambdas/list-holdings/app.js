@@ -13,7 +13,7 @@ exports.handler = async (event, context) => {
         await client.connect();
         console.log("Connected to postgres")
 
-        const listHoldingsQuery = 'SELECT * FROM list_holdings_view';
+        const listHoldingsQuery = 'SELECT * FROM get_holding_view';
         console.log(`List holdings query: ${listHoldingsQuery}`);
         const listHoldingsResp = await client.query(listHoldingsQuery);
         console.log(listHoldingsResp);

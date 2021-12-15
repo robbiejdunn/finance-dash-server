@@ -120,26 +120,6 @@ exports.handler = async(event, context) => {
             console.log(err);
         }
 
-        // List holdings view
-        try {
-            const createListHoldingsViewQuery = `
-                CREATE OR REPLACE VIEW list_holdings_view AS
-                    SELECT 
-                        holdings.holding_id AS holding_id,
-                        tickers.ticker_name AS ticker_name,
-                        tickers.symbol AS symbol,
-                        holdings.units AS units,
-                        tickers.current_price AS current_price
-                    FROM holdings
-                        INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
-            `;
-            const createListHoldinggsViewRes = await client.query(createListHoldingsViewQuery);
-            console.log(createListHoldinggsViewRes);
-        }
-        catch (err) {
-            console.log(err);
-        }
-
         // Get holding view
         try {
             const createGetHoldingViewQuery = `

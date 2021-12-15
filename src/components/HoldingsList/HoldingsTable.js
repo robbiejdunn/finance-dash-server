@@ -224,7 +224,7 @@ export default function HoldingsTable(props) {
         return createData(
             holding['holding_id'],
             holding['ticker_name'],
-            holding['symbol'],
+            holding['ticker_symbol'],
             holding['units'],
             holding['current_price'],
             holding['market_value'],

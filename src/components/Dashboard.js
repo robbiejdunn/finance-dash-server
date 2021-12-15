@@ -13,27 +13,23 @@ export default function Dashboard(props) {
     const [pieChartData, setPieChartData] = useState([]);
     
     useEffect(() => {
-        let endpoint;
-        if(process.env['NODE_ENV'] && process.env['NODE_ENV'] === 'development') {
-            const apiId = process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT.split('.')[0].replace('https://', '');
-            endpoint = `http://localhost:4566/restapis/${apiId}/prod/_user_request_/portfolio`
-        } else {
-            endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio`
-        }
+        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio`;
         axios.get(endpoint).then(res => {
+            console.log(res);
             let holdingsDict = {};
             
             // maps holdings to their chart color
             let colorIndex = 0;
-            res.data.holdings.Items.map((holding) => {
+            res.data.holdings.map((holding) => {
                 const currColor = category20Colors[colorIndex++];
                 
-                holding.marketValue.N = holding.units.N * holding.currentPrice.N;
+                holding.market_value.N = holding.units.N * holding.current_price.N;
 
-                if(holding.marketValue.N > 0) {
-                    holdingsDict[holding.id.S] = {...holding, color: currColor};
+                if(holding.market_value.N > 0) {
+                    holdingsDict[holding.holding_id] = {...holding, color: currColor};
                 }
             });
+            console.log(holdingsDict);
 
             // join transactions to holdings
             res.data.transactions.Items.map((transaction) => {

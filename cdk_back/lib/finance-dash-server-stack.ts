@@ -103,9 +103,6 @@ export class FinanceDashServerStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY,
         })
 
-        // this is for mounting code when running with localstack
-        // const localBucket = Bucket.fromBucketName(this, 's3local', 'local');
-
         const initDBFunction = new Function(this, 'InitDBFunction', {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
@@ -186,10 +183,11 @@ export class FinanceDashServerStack extends Stack {
             code: Code.fromAsset('lambdas/get-portfolio-full'),
             timeout: Duration.seconds(10),
             environment: {
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName,
-                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
-                'TICKERS_TABLE_NAME': tickerTable.tableName,
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -228,14 +226,7 @@ export class FinanceDashServerStack extends Stack {
 
         historicalDataTopic.grantPublish(createHoldingFunction);
 
-        tickerTable.grantReadData(getPortfolioFullFunction);
-
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
-        tickerPriceTable.grantReadData(getPortfolioFullFunction);
-
-        holdingsTable.grantReadData(getPortfolioFullFunction);
-
-        transactionTable.grantReadData(getPortfolioFullFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
