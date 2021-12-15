@@ -126,10 +126,11 @@ export class FinanceDashServerStack extends Stack {
             code: Code.fromAsset('lambdas/get-holding'),
             timeout: Duration.seconds(10),
             environment: {
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-                'TICKERS_TABLE_NAME': tickerTable.tableName,
-                'TICKER_PRICES_TABLE_NAME': tickerPriceTable.tableName,
-                'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -228,20 +229,16 @@ export class FinanceDashServerStack extends Stack {
         historicalDataTopic.grantPublish(createHoldingFunction);
 
         tickerTable.grantWriteData(createHoldingFunction);
-        tickerTable.grantReadData(getHoldingFunction);
         tickerTable.grantReadData(getPortfolioFullFunction);
 
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
-        tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
-        holdingsTable.grantReadData(getHoldingFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
 
         transactionTable.grantWriteData(createTransactionFunction);
-        transactionTable.grantReadData(getHoldingFunction);
         transactionTable.grantReadData(getPortfolioFullFunction);
 
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)

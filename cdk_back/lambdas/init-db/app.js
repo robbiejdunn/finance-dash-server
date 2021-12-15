@@ -154,10 +154,10 @@ exports.handler = async(event, context) => {
                         tickers.market_cap AS market_cap,
                         tickers.volume AS volume,
                         tickers.image_url AS image_url,
-                        tickers.coin_id AS coin_id
+                        tickers.coin_id AS coin_id,
+                        tickers.ticker_id AS ticker_id
                     FROM holdings 
                         INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
-                        LEFT JOIN 
             `;
             const createGetHoldingViewRes = await client.query(createGetHoldingViewQuery);
             console.log(createGetHoldingViewRes);
