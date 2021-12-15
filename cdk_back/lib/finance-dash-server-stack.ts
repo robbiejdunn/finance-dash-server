@@ -147,12 +147,13 @@ export class FinanceDashServerStack extends Stack {
                 '/home/robbie/dev/aws/finance-dash-server/lambdas/create-ticker-prices-cron', 
                 'lambdas/create-ticker-prices-cron',
             ),
-            timeout: Duration.seconds(10),
+            timeout: Duration.seconds(120),
             environment: {
-                'TICKER_TABLE': tickerTable.tableName,
-                'TICKER_PRICE_TABLE_NAME': tickerPriceTable.tableName,
-                'HOLDINGS_TABLE_NAME': holdingsTable.tableName,
-                // 'TRANSACTIONS_TABLE_NAME': transactionTable.tableName
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
             },
             logRetention: RetentionDays.ONE_WEEK,
         });
@@ -251,21 +252,17 @@ export class FinanceDashServerStack extends Stack {
         historicalDataTopic.grantPublish(createHoldingFunction);
 
         tickerTable.grantWriteData(createHoldingFunction);
-        tickerTable.grantReadData(createTickerPricesCronFunction);
         tickerTable.grantReadData(getHoldingFunction);
         tickerTable.grantReadData(getPortfolioFullFunction);
 
-        tickerPriceTable.grantWriteData(createTickerPricesCronFunction);
         tickerPriceTable.grantWriteData(getCoinHistoricalFunction);
         tickerPriceTable.grantReadData(getHoldingFunction);
         tickerPriceTable.grantReadData(getPortfolioFullFunction);
 
         holdingsTable.grantWriteData(createHoldingFunction);
         holdingsTable.grantWriteData(createTransactionFunction);
-        holdingsTable.grantWriteData(createTickerPricesCronFunction);
         holdingsTable.grantReadData(getHoldingFunction);
         holdingsTable.grantReadData(getPortfolioFullFunction);
-        holdingsTable.grantReadData(createTickerPricesCronFunction);
 
         transactionTable.grantWriteData(createTransactionFunction);
         transactionTable.grantReadData(getHoldingFunction);

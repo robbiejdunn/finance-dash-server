@@ -48,10 +48,7 @@ exports.handler = async(event, context) => {
                     market_cap                  numeric,
                     volume                      numeric,
                     image_url                   varchar(400),
-                    coin_id                     varchar(40),
-                    CONSTRAINT fk_ticker
-                        FOREIGN KEY(ticker_id)
-                            REFERENCES tickers(ticker_id)
+                    coin_id                     varchar(40)
                 )
             `;
             const createTickersTableRes = await client.query(createTickersTableQuery);
@@ -133,10 +130,37 @@ exports.handler = async(event, context) => {
                         tickers.symbol AS symbol,
                         holdings.units AS units,
                         tickers.current_price AS current_price
-                    FROM holdings INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
+                    FROM holdings
+                        INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
             `;
             const createListHoldinggsViewRes = await client.query(createListHoldingsViewQuery);
             console.log(createListHoldinggsViewRes);
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+        // Get holding view
+        try {
+            const createGetHoldingViewQuery = `
+                CREATE OR REPLACE VIEW get_holding_view AS
+                    SELECT
+                        holdings.holding_id AS holding_id,
+                        holdings.units AS units,
+                        tickers.ticker_name AS ticker_name,
+                        tickers.symbol AS ticker_symbol,
+                        tickers.current_price AS current_price,
+                        tickers.twenty_four_hour_change AS twenty_four_hour_change,
+                        tickers.market_cap AS market_cap,
+                        tickers.volume AS volume,
+                        tickers.image_url AS image_url,
+                        tickers.coin_id AS coin_id
+                    FROM holdings 
+                        INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
+                        LEFT JOIN 
+            `;
+            const createGetHoldingViewRes = await client.query(createGetHoldingViewQuery);
+            console.log(createGetHoldingViewRes);
         }
         catch (err) {
             console.log(err);
