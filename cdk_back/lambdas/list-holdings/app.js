@@ -13,13 +13,7 @@ exports.handler = async (event, context) => {
         await client.connect();
         console.log("Connected to postgres")
 
-        const listHoldingsQuery = `SELECT 
-            holdings.holding_id AS holding_id,
-            tickers.ticker_name AS ticker_name,
-            tickers.symbol AS symbol,
-            holdings.units AS units,
-            tickers.current_price AS current_price
-         FROM holdings INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id`;
+        const listHoldingsQuery = 'SELECT * FROM list_holdings_view';
         console.log(`List holdings query: ${listHoldingsQuery}`);
         const listHoldingsResp = await client.query(listHoldingsQuery);
         console.log(listHoldingsResp);
