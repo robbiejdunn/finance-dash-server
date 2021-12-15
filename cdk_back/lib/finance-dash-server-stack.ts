@@ -4,7 +4,7 @@ import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 import { Code, Function, Runtime, Tracing } from '@aws-cdk/aws-lambda';
 import { Bucket, IBucket } from '@aws-cdk/aws-s3';
-import { App, Duration, RemovalPolicy, SecretValue, Stack, StackProps } from '@aws-cdk/core';
+import { App, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 import { strict } from 'assert';
 import { Topic } from '@aws-cdk/aws-sns';
 import { LambdaSubscription } from '@aws-cdk/aws-sns-subscriptions';
@@ -13,7 +13,6 @@ import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
