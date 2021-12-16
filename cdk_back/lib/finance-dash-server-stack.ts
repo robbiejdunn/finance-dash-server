@@ -160,7 +160,7 @@ export class FinanceDashServerStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             handler: 'app.handler',
             code: Code.fromAsset('lambdas/create-holding'),
-            timeout: Duration.seconds(10),
+            timeout: Duration.minutes(2),
             environment: {
                 'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
                 'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,

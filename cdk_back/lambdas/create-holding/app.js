@@ -79,26 +79,27 @@ exports.handler = async (event, context) => {
         await client.end();
 
         // Use postgres COPY for historical data
-        const testData = [
-            [
-                `${uuidv4()}`,
-                tickerId,
-                '2019-12-15 19:00:20.201',
-                '100',
-                '2',
-            ],
-            [
-                `${uuidv4()}`,
-                tickerId,
-                '2020-12-15 19:00:20.201',
-                '200',
-                '3',
-            ]
-        ];
-        console.log(`Loading data ${JSON.stringify(testData)}`);
-        console.log(`Loading data TSV ${json2tsv(testData)}`)
+        const coinGeckoHistoricalDataEndpoint = (
+            `https://api.coingecko.com/api/v3/coins/${pickedCryptoId}/market_chart`
+            + '?vs_currency=gbp'
+            + '&days=max'
+            + '&interval=daily'
+        );
+        const historicalRes = await axios.get(coinGeckoHistoricalDataEndpoint);
+        const tsvHistorical = historicalRes.data.prices.map(([datetime, price]) => {
+            if (parseFloat(price)) {
+                return [
+                    `${uuidv4()}`,                          // tp_id
+                    tickerId,                               // ticker_id
+                    new Date(datetime).toISOString(),       // datetime
+                    `${price}`,                             // price
+                    '0',                                    // twenty_four_hour_change (TBD)
+                ];
+            }
+        });
+
         console.log('Writing historical data to TSV in preparation for PG COPY');
-        await fsp.writeFile('/tmp/bulk.tsv', json2tsv(testData), 'utf8');
+        await fsp.writeFile('/tmp/bulk.tsv', json2tsv(tsvHistorical), 'utf8');
         console.log('TSV file written successfully');
 
         // const readData = await fsp.readFile('/tmp/bulk.csv', 'utf8');
