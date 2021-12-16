@@ -1,6 +1,9 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const { Client } = require('pg');
+const { Client, Pool } = require('pg');
+const fsp = require('fs').promises;
+// const fs 
+const copyFrom = require('pg-copy-streams').from;
 
 exports.handler = async (event, context) => {
     const response = {
@@ -32,6 +35,8 @@ exports.handler = async (event, context) => {
         await client.connect();
         console.log("Connected to postgres")
 
+        // Check if ticker already exists, if it does then FK to it to 
+        // reduce number of ticker prices required
         const createTickerQuery = `INSERT INTO tickers (
             ticker_id,
             ticker_name,
@@ -71,6 +76,86 @@ exports.handler = async (event, context) => {
         console.log(createHoldingResp);
 
         await client.end();
+
+        // Use postgres COPY for historical data
+        const testData = [
+            {
+                tp_id: `${uuidv4()}`,
+                ticker_id: tickerId,
+                datetime: '2019-12-15 19:00:20.201',
+                price: '100',
+                twenty_four_hour_change: '2',
+            },
+            {
+                tp_id: `${uuidv4()}`,
+                ticker_id: tickerId,
+                datetime: '2020-12-15 19:00:20.201',
+                price: '200',
+                twenty_four_hour_change: '3',
+            }
+        ];
+        console.log(`Loading data ${JSON.stringify(testData)}`);
+        console.log('Writing historical data to CSV in preparation for PG COPY');
+        await fsp.writeFile('/tmp/bulk.csv', JSON.stringify(testData), 'utf8');
+        console.log('CSV file written successfully');
+
+        
+        , async (err) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            console.log('CSV file written successfully');
+        });
+
+        await fsp.readFile('/tmp/bulk.csv', 'utf8', (err, data) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log(`Loaded data with read: ${data}`);
+        })
+
+        console.log('COPYing file to PG');
+        const pool = new Pool();
+        console.log("Connecting to PG pool");
+        await pool.connect((err, client, done) => {
+            console.log("Connected to PG pool");
+            const stream = client.query(copyFrom('COPY ticker_prices FROM STDIN'));
+            const fileStream = fs.createReadStream('/tmp/bulk.csv');
+            fileStream.on('error', (err) => {
+                console.log(`File stream error ${err}`);
+                done();
+            });
+            stream.on('error', (err) => {
+                console.log(`Stream error ${err}`);
+                done();
+            });
+            stream.on('finish', done)
+            fileStream.pipe(stream)
+        }).promise();
+
+        // const poolClient = await pool.connect();
+        // try {
+        //     const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN'));
+        //     const fileStream = fs.createReadStream('/tmp/bulk.csv');
+        //     fileStream.on('error', (err) => {
+        //         console.log(err);
+        //         throw err;
+        //     });
+        //     stream.on('error', (err) => {
+        //         console.log(err);
+        //         throw err;
+        //     });
+        //     stream.on('finish', () => {
+        //         console.log("Stream finished")
+        //         throw 1;
+        //     });
+        //     fileStream.pipe(stream);
+        // } finally {
+        //     poolClient.release();
+        // }
+        console.log('COPY completed');
 
         response.statusCode = 200;
         response.body = "Success";
