@@ -3,10 +3,10 @@
 # exit when any command fails
 set -e
 
-echo "Select deploy type: f = fullstack, b = only backend, f = only frontend"
+echo "Select deploy type: a = all stacks (both backend and frontend), b = only backend, f = only frontend"
 read DEPLOY_TYPE
 
-if [[ "$DEPLOY_TYPE" == "b" ]]; then
+if [[ "$DEPLOY_TYPE" == "b" ]] || [[ "$DEPLOY_TYPE" == "a" ]]; then
     # npm install backend CDK deps
     cd cdk_back && npm install
 
@@ -22,7 +22,7 @@ if [[ "$DEPLOY_TYPE" == "b" ]]; then
     cd .. && cdk deploy && cd ..
 fi
 
-if [[ "$DEPLOY_TYPE" == "f" ]]; then
+if [[ "$DEPLOY_TYPE" == "f" ]] || [[ "$DEPLOY_TYPE" == "a" ]]; then
     # install react app deps
     npm install
 
