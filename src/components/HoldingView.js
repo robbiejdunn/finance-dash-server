@@ -96,6 +96,7 @@ export default function HoldingView() {
     const [twentyFourHrChange, setTwentyFourHrChange] = useState(0);
     const [twentyFourHrVolume, setTwentyFourHrVolume] = useState(0);
     const [marketCap, setMarketCap] = useState(0);
+    const [holdingColor, setHoldingColor] = useState('#75daad');
 
     useEffect(() => {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
@@ -115,6 +116,7 @@ export default function HoldingView() {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
+            setHoldingColor(res.data.holding.color);
         });
     }, [holdingId]);
 
@@ -180,7 +182,7 @@ export default function HoldingView() {
                 </div>
             </div>            
             {/* <XYGraph graphData = {tickerPrices} /> */}
-            <HoldingPriceChart data={tickerPrices} />
+            <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} />
             {/* <HoldingPriceChart 
                 chartData={tickerPrices}
                 hideBottomAxis

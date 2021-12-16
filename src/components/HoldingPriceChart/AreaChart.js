@@ -35,6 +35,7 @@ export default function AreaChart({
     hideLeftAxis = false,
     hideGrid = false,
     children,
+    chartColor,
 }) {
 
     const {
@@ -109,8 +110,8 @@ export default function AreaChart({
                 >
                     <LinearGradient
                         id="area-gradient"
-                        from='#75daad'
-                        to='#75daad'
+                        from={chartColor}
+                        to={chartColor}
                         toOpacity={0.3}
                     />
                     {!hideGrid && (

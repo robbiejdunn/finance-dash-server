@@ -6,6 +6,29 @@ const fs = require('fs');
 const copyFrom = require('pg-copy-streams').from;
 const { json2tsv } = require('tsv-json');
 
+const catTwentyColors = [
+    "#1f77b4",
+    "#aec7e8",
+    "#ff7f0e",
+    "#ffbb78",
+    "#2ca02c",
+    "#98df8a",
+    "#d62728",
+    "#ff9896",
+    "#9467bd",
+    "#c5b0d5",
+    "#8c564b",
+    "#c49c94",
+    "#e377c2",
+    "#f7b6d2",
+    "#7f7f7f",
+    "#c7c7c7",
+    "#bcbd22",
+    "#dbdb8d",
+    "#17becf",
+    "#9edae5",
+];
+
 exports.handler = async (event, context) => {
     const response = {
         headers: {        
@@ -57,8 +80,8 @@ exports.handler = async (event, context) => {
             '${coinDataFetch['market_data']['market_cap']['gbp']}',
             '${coinDataFetch['market_data']['total_volume']['gbp']}',
             '${coinDataFetch['image']['large']}',
-            '${pickedCryptoId}'
-        )`;
+            '${pickedCryptoId}')
+        `;
         console.log(`Ticker query: ${createTickerQuery}`);
         const createTickerResp = await client.query(createTickerQuery);
         console.log(createTickerResp);
@@ -66,12 +89,14 @@ exports.handler = async (event, context) => {
         const createHoldingQuery = `INSERT INTO holdings (
             holding_id,
             units,
-            ticker_id)
+            ticker_id,
+            color)
         VALUES (
             '${uuidv4()}',
             '0',
-            '${tickerId}'
-        )`;
+            '${tickerId}',
+            '${catTwentyColors[Math.floor(Math.random() * catTwentyColors.length)]}')
+        `;
         console.log(`Holding query: ${createHoldingQuery}`);
         const createHoldingResp = await client.query(createHoldingQuery);
         console.log(createHoldingResp);

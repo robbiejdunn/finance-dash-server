@@ -8,23 +8,14 @@ import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material'
 const theme = createTheme({
     palette: {
         mode: 'dark',
+        primary: {
+            main: '#c5851199'
+        },
         secondary: {
             main: '#c5851199'
         }
     }
 });
-
-// const theme = createTheme(adaptV4Theme({
-//   palette: {
-//     mode: 'dark',
-//     // primary: {
-//     //   main: '#097D1C'
-//     // },
-//     secondary: {
-//       main: '#c5851199'
-//     }
-//   }
-// }));
 
 ReactDOM.render(
   <React.StrictMode>

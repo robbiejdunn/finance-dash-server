@@ -34,6 +34,7 @@ export default function HoldingPriceChart({
     },
     chartSeperation = 30,
     accentColor = '#f6acc8',
+    chartColor = '#75daad',
 }) {
     const brushRef = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +132,8 @@ export default function HoldingPriceChart({
                         yMax={yMax}
                         xScale={dateScale}
                         yScale={priceScale}
-                        hideGrid    
+                        hideGrid
+                        chartColor={chartColor}  
                     />
                     <AreaChart
                         hideLeftAxis
@@ -143,6 +145,7 @@ export default function HoldingPriceChart({
                         margin={brushMargin}
                         top={topChartHeight + topChartBottomMargin + margin.top}
                         hideGrid
+                        chartColor={chartColor}  
                     >
                         <PatternLines
                             id={PATTERN_ID}
