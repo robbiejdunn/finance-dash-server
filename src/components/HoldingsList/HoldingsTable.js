@@ -19,9 +19,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { toCurrencyString } from '../../utils';
-import AddIcon from '@mui/icons-material/Add';
 import CreateHoldingDialog from './CreateHoldingDialog';
 
 
@@ -147,10 +145,6 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
     const { numSelected } = props;
-
-    const handleAddHoldingClick = (event) => {
-        console.log("holdingadded")
-    }
 
     return (
         <Toolbar
@@ -307,12 +301,12 @@ export default function HoldingsTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
-                                    let totalGainClass;
-                                    if (row.totalGain < 0) {
-                                        totalGainClass = classes.gainLoss
-                                    } else {
-                                        totalGainClass = classes.gainProfit
-                                    }
+                                    // let totalGainClass;
+                                    // if (row.totalGain < 0) {
+                                    //     totalGainClass = classes.gainLoss
+                                    // } else {
+                                    //     totalGainClass = classes.gainProfit
+                                    // }
                                     return (
                                         <TableRow
                                             hover

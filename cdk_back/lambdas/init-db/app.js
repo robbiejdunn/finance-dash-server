@@ -65,6 +65,7 @@ exports.handler = async(event, context) => {
                     holding_id                  varchar(40) PRIMARY KEY,
                     units                       numeric,
                     ticker_id                   varchar(40),
+                    color                       varchar(7),
                     CONSTRAINT fk_ticker
                         FOREIGN KEY(ticker_id)
                             REFERENCES tickers(ticker_id)
@@ -135,7 +136,8 @@ exports.handler = async(event, context) => {
                         tickers.volume AS volume,
                         tickers.image_url AS image_url,
                         tickers.coin_id AS coin_id,
-                        tickers.ticker_id AS ticker_id
+                        tickers.ticker_id AS ticker_id,
+                        holdings.color AS colorw
                     FROM holdings 
                         INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
             `;

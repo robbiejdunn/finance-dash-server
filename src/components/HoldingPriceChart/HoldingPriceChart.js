@@ -1,5 +1,5 @@
 //https://codesandbox.io/s/github/airbnb/visx/tree/master/packages/visx-demo/src/sandboxes/visx-brush?file=/Example.tsx:965-1080
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import AreaChart from "./AreaChart";
 import { extent, max } from 'd3-array';
 import { Brush } from '@visx/brush';
@@ -34,6 +34,7 @@ export default function HoldingPriceChart({
     },
     chartSeperation = 30,
     accentColor = '#f6acc8',
+    chartColor = '#75daad',
 }) {
     const brushRef = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +132,8 @@ export default function HoldingPriceChart({
                         yMax={yMax}
                         xScale={dateScale}
                         yScale={priceScale}
-                        hideGrid    
+                        hideGrid
+                        chartColor={chartColor}  
                     />
                     <AreaChart
                         hideLeftAxis
@@ -143,6 +145,7 @@ export default function HoldingPriceChart({
                         margin={brushMargin}
                         top={topChartHeight + topChartBottomMargin + margin.top}
                         hideGrid
+                        chartColor={chartColor}  
                     >
                         <PatternLines
                             id={PATTERN_ID}

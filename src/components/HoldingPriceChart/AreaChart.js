@@ -1,14 +1,13 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Orientation } from '@visx/axis';
 import { curveMonotoneX } from '@visx/curve';
 import { AnimatedAxis, AnimatedGridColumns, AnimatedGridRows } from '@visx/react-spring';
-import { AreaClosed, LinePath, Bar, Line } from '@visx/shape';
+import { AreaClosed, Bar, Line } from '@visx/shape';
 import { LinearGradient } from "@visx/gradient";
 import { Group } from '@visx/group';
 import { useTooltip, useTooltipInPortal, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
-import { Tooltip } from '@mui/material';
 
 
 // accessors
@@ -36,6 +35,7 @@ export default function AreaChart({
     hideLeftAxis = false,
     hideGrid = false,
     children,
+    chartColor,
 }) {
 
     const {
@@ -47,9 +47,9 @@ export default function AreaChart({
         hideTooltip,
     } = useTooltip();
 
-    const innerWidth = width - margin.left - margin.right;
+    // const innerWidth = width - margin.left - margin.right;
 
-    const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    const { containerRef } = useTooltipInPortal({
         // use TooltipWithBounds
         detectBounds: true,
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
@@ -72,7 +72,7 @@ export default function AreaChart({
             tooltipTop: yScale(getPrice(d)),
         });
         },
-        [showTooltip, xScale, yScale]
+        [showTooltip, xScale, yScale, chartData]
     );
 
     const gridColor = '#ccc';
@@ -98,9 +98,6 @@ export default function AreaChart({
         }
     };
 
-    const tickFormat = (v, i) => v.toISOString().slice(0, 16);
-
-
     return (
         <div width={width + margin.left + margin.right} height={yMax + margin.bottom + margin.top} ref={containerRef} style={{position: 'relative'}}>
             <svg
@@ -113,8 +110,8 @@ export default function AreaChart({
                 >
                     <LinearGradient
                         id="area-gradient"
-                        from='#75daad'
-                        to='#75daad'
+                        from={chartColor}
+                        to={chartColor}
                         toOpacity={0.3}
                     />
                     {!hideGrid && (

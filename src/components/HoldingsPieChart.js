@@ -1,6 +1,6 @@
 // Influenced by https://www.youtube.com/watch?v=bL3P9CqQkKw
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Group } from '@visx/group';
 import { Pie } from '@visx/shape';
 import { Text } from '@visx/text';

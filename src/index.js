@@ -1,21 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import ClippedDrawer from './components/clippedDrawer';
+import ClippedDrawer from './components/ClippedDrawer';
 import reportWebVitals from './reportWebVitals';
-import { createTheme, ThemeProvider, StyledEngineProvider, adaptV4Theme } from '@mui/material';
+import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material';
 
-const theme = createTheme(adaptV4Theme({
-  palette: {
-    mode: 'dark',
-    // primary: {
-    //   main: '#097D1C'
-    // },
-    secondary: {
-      main: '#c5851199'
+const theme = createTheme({
+    palette: {
+        mode: 'dark',
+        primary: {
+            main: '#c5851199'
+        },
+        secondary: {
+            main: '#c5851199'
+        }
     }
-  }
-}));
+});
 
 ReactDOM.render(
   <React.StrictMode>

@@ -31,11 +31,6 @@ export function toCurrencyString(v) {
         }
     );
     return `£${asStr}`;
-    if (parsed < 0) {
-        return `-£${asStr}`;
-    } else {
-        return `+£${asStr}`;
-    }
 }
 
 export function toGainString(v) {

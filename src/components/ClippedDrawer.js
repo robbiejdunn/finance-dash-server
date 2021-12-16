@@ -4,7 +4,6 @@ import {
     Switch,
     Route,
     NavLink,
-    useRouteMatch
   } from "react-router-dom";
 import makeStyles from '@mui/styles/makeStyles';
 import Drawer from '@mui/material/Drawer';
@@ -16,16 +15,10 @@ import Typography from '@mui/material/Typography';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import PagesIcon from '@mui/icons-material/Pages';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import Collapse from '@mui/material/Collapse';
-import AddIcon from '@mui/icons-material/Add';
-import ListIcon from '@mui/icons-material/List';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import HoldingsListView from './HoldingsList/HoldingsListView';
-import HoldingView from './holdingView';
+import HoldingView from './HoldingView';
 import Dashboard from './Dashboard';
 
 const drawerWidth = 240;
@@ -36,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    backgroundColor: '#0b3910'
+    // backgroundColor: '#0b3910'
   },
   drawer: {
     width: drawerWidth,
@@ -62,11 +55,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ClippedDrawer() {
     const classes = useStyles();
-    const [tickersOpen, tickersSetOpen] = React.useState(true);
-
-    const handleTickersOpenClick = () => {
-        tickersSetOpen(!tickersOpen);
-    }
 
     return (
         <Router>
@@ -74,7 +62,10 @@ export default function ClippedDrawer() {
             <CssBaseline />
             <AppBar position="fixed" className={classes.appBar}>
                 <Toolbar>
-                <Typography variant="h6" noWrap>
+                <Typography 
+                    variant="h6" 
+                    noWrap
+                >
                     Investment Tracker
                 </Typography>
                 </Toolbar>
@@ -115,14 +106,14 @@ export default function ClippedDrawer() {
             <main className={classes.content}>
                 <Toolbar />
                 <Switch>
-                    <Route path="/dashboard">
-                        <Dashboard />
-                    </Route>
                     <Route path="/holdings/:holdingId">
                         <HoldingView />
                     </Route>
                     <Route path="/holdings">
                         <HoldingsListView />
+                    </Route>
+                    <Route path="/dashboard">
+                        <Dashboard />
                     </Route>
                 </Switch>
             </main>

@@ -3,15 +3,8 @@ import makeStyles from '@mui/styles/makeStyles';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Typography from '@mui/material/Typography';
-import { Button, Divider } from '@mui/material';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
+import { Divider } from '@mui/material';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import XYGraph from './tickerPriceLineD3';
 import TransactionsTable from './TransactionsTable';
 import { toCurrencyString } from '../utils';
 import HoldingPriceChart from './HoldingPriceChart/HoldingPriceChart';
@@ -88,34 +81,22 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const columns = [
-    { 
-        field: 'datetime', 
-        headerName: 'Datetime',
-        width: 250,
-    },
-    { 
-        field: 'price', 
-        headerName: 'Price',
-        flex: 1,
-    },
-];
-
 export default function HoldingView() {
     const classes = useStyles();
     const { holdingId } = useParams();
 
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
-    const [units, setUnits] = useState(0);
+    // const [units, setUnits] = useState(0);
     const [currentPrice, setCurrentPrice] = useState(0);
-    const [tickerId, setTickerId] = useState('');
+    // const [tickerId, setTickerId] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [tickerPrices, setTickerPrices] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [twentyFourHrChange, setTwentyFourHrChange] = useState(0);
     const [twentyFourHrVolume, setTwentyFourHrVolume] = useState(0);
     const [marketCap, setMarketCap] = useState(0);
+    const [holdingColor, setHoldingColor] = useState('#75daad');
 
     useEffect(() => {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
@@ -124,9 +105,9 @@ export default function HoldingView() {
             console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
-            setUnits(res.data.holding.units);
+            // setUnits(res.data.holding.units);
             setCurrentPrice(res.data.holding.current_price);
-            setTickerId(res.data.holding.ticker_id);
+            // setTickerId(res.data.holding.ticker_id);
             setImageUrl(res.data.holding.image_url);
             setTwentyFourHrChange(res.data.holding.twenty_four_hour_change);
             setTwentyFourHrVolume(res.data.holding.volume);
@@ -135,12 +116,9 @@ export default function HoldingView() {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
+            setHoldingColor(res.data.holding.color);
         });
-    }, []);
-
-    const openCreateTransactionModal = (event) => {
-
-    }
+    }, [holdingId]);
 
     return (
         <div className={classes.root} component={Paper}>
@@ -196,7 +174,7 @@ export default function HoldingView() {
                             </div>
                         </div>
                         <div className={classes.flexLogo}>
-                            <img src={imageUrl} className={classes.logo} ></img>
+                            <img src={imageUrl} className={classes.logo} alt="Coin logo" ></img>
                         </div>
                     </div>
                     <Divider className={classes.divider}></Divider>
@@ -204,7 +182,7 @@ export default function HoldingView() {
                 </div>
             </div>            
             {/* <XYGraph graphData = {tickerPrices} /> */}
-            <HoldingPriceChart data={tickerPrices} />
+            <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} />
             {/* <HoldingPriceChart 
                 chartData={tickerPrices}
                 hideBottomAxis
