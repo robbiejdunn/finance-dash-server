@@ -51,7 +51,7 @@ exports.handler = async (event, context) => {
         VALUES (
             '${tickerId}',
             '${coinDataFetch['name']}',
-            '${coinDataFetch['symbol']}',
+            '${coinDataFetch['symbol'].toUpperCase()}',
             '${coinDataFetch['market_data']['current_price']['gbp']}',
             '${coinDataFetch['market_data']['price_change_24h']}',
             '${coinDataFetch['market_data']['market_cap']['gbp']}',

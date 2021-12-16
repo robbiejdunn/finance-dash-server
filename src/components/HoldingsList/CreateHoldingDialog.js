@@ -186,7 +186,7 @@ export default function CreateHoldingDialog(props) {
                                     key={coin.id}
                                 >
                                     <div className={classes.coinOptionSymbol}>
-                                        {coin.symbol}
+                                        {coin.symbol.toUpperCase()}
                                     </div>
                                     <div className={classes.coinOptionName}>
                                         {coin.name}

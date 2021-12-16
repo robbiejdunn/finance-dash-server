@@ -74,7 +74,13 @@ export default function ClippedDrawer() {
             <CssBaseline />
             <AppBar position="fixed" className={classes.appBar}>
                 <Toolbar>
-                <Typography variant="h6" noWrap>
+                <Typography 
+                    variant="h6" 
+                    noWrap
+                    button
+                    component={NavLink}
+                    to="/dashboard"
+                >
                     Investment Tracker
                 </Typography>
                 </Toolbar>
@@ -115,14 +121,14 @@ export default function ClippedDrawer() {
             <main className={classes.content}>
                 <Toolbar />
                 <Switch>
-                    <Route path="/dashboard">
-                        <Dashboard />
-                    </Route>
                     <Route path="/holdings/:holdingId">
                         <HoldingView />
                     </Route>
                     <Route path="/holdings">
                         <HoldingsListView />
+                    </Route>
+                    <Route path="/dashboard">
+                        <Dashboard />
                     </Route>
                 </Switch>
             </main>

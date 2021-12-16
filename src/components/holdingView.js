@@ -10,8 +10,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import XYGraph from './tickerPriceLineD3';
 import TransactionsTable from './TransactionsTable';
 import { toCurrencyString } from '../utils';
 import HoldingPriceChart from './HoldingPriceChart/HoldingPriceChart';
