@@ -1,14 +1,13 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Orientation } from '@visx/axis';
 import { curveMonotoneX } from '@visx/curve';
 import { AnimatedAxis, AnimatedGridColumns, AnimatedGridRows } from '@visx/react-spring';
-import { AreaClosed, LinePath, Bar, Line } from '@visx/shape';
+import { AreaClosed, Bar, Line } from '@visx/shape';
 import { LinearGradient } from "@visx/gradient";
 import { Group } from '@visx/group';
 import { useTooltip, useTooltipInPortal, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
-import { Tooltip } from '@mui/material';
 
 
 // accessors

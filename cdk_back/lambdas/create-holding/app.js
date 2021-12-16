@@ -133,43 +133,6 @@ exports.handler = async (event, context) => {
         });
         const streamRes = await streamEnd;
         console.log(streamRes);
-
-        // pool.connect(async (err, client, done) => {
-        //     console.log("Connected to PG pool");
-        //     const stream = client.query(copyFrom('COPY ticker_prices FROM STDIN'));
-        //     const fileStream = fs.createReadStream('/tmp/bulk.csv');
-        //     fileStream.on('error', (err) => {
-        //         console.log(`File stream error ${err}`);
-        //         done();
-        //     });
-        //     stream.on('error', (err) => {
-        //         console.log(`Stream error ${err}`);
-        //         done();
-        //     });
-        //     stream.on('finish', done)
-        //     fileStream.pipe(stream)
-        // });
-
-        // const poolClient = await pool.connect();
-        // try {
-        //     const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN'));
-        //     const fileStream = fs.createReadStream('/tmp/bulk.csv');
-        //     fileStream.on('error', (err) => {
-        //         console.log(err);
-        //         throw err;
-        //     });
-        //     stream.on('error', (err) => {
-        //         console.log(err);
-        //         throw err;
-        //     });
-        //     stream.on('finish', () => {
-        //         console.log("Stream finished")
-        //         throw 1;
-        //     });
-        //     fileStream.pipe(stream);
-        // } finally {
-        //     poolClient.release();
-        // }
         console.log('COPY completed');
 
         response.statusCode = 200;

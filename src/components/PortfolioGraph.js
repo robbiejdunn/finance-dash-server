@@ -1,4 +1,3 @@
-import { scaleTime, scaleUtc } from '@visx/scale';
 import {
     AreaSeries,
     AnimatedAxis, // any of these can be non-animated equivalents
@@ -6,7 +5,6 @@ import {
     darkTheme,
     AnimatedAreaStack,
     XYChart,
-    Tooltip,
 } from '@visx/xychart';
 
 import React, { useEffect, useState } from 'react';
@@ -83,17 +81,11 @@ export default function PortfolioGraph(props) {
         yAccessor: d => d.y,
     };
 
-    function tickFormat(v) {
-        return v.toLocaleString()
-    }
-
     return (
         <XYChart 
             height={400}
             xScale={{ 
                 type: 'time',
-                // domain: [new Date("2021-11-01T12:29:15.303Z"), new Date("2021-11-01T14:09:11.625Z")]
-                // nice: true,
                 padding: 10
             }} 
             yScale={{ type: 'linear', nice: true }} 

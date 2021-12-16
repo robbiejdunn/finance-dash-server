@@ -18,7 +18,6 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { toCurrencyString } from '../utils';
 import CreateTransactionDialog from './CreateTransactionDialog';
 

@@ -1,5 +1,5 @@
 //https://codesandbox.io/s/github/airbnb/visx/tree/master/packages/visx-demo/src/sandboxes/visx-brush?file=/Example.tsx:965-1080
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import AreaChart from "./AreaChart";
 import { extent, max } from 'd3-array';
 import { Brush } from '@visx/brush';
