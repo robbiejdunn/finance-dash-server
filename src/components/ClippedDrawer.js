@@ -25,7 +25,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ListIcon from '@mui/icons-material/List';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import HoldingsListView from './HoldingsList/HoldingsListView';
-import HoldingView from './holdingView';
+import HoldingView from './HoldingView';
 import Dashboard from './Dashboard';
 
 const drawerWidth = 240;
@@ -77,9 +77,6 @@ export default function ClippedDrawer() {
                 <Typography 
                     variant="h6" 
                     noWrap
-                    button
-                    component={NavLink}
-                    to="/dashboard"
                 >
                     Investment Tracker
                 </Typography>

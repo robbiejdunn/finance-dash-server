@@ -20,7 +20,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { toCurrencyString } from '../utils';
-import CreateTransactionDialog from './createTransactionDialog';
+import CreateTransactionDialog from './CreateTransactionDialog';
 
 function createData(id, datetime, buySell, units, price, totalGain) {
     return { id, datetime, buySell, units, price, totalGain };

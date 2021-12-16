@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import ClippedDrawer from './components/clippedDrawer';
+import ClippedDrawer from './components/ClippedDrawer';
 import reportWebVitals from './reportWebVitals';
 import { createTheme, ThemeProvider, StyledEngineProvider, adaptV4Theme } from '@mui/material';
 
