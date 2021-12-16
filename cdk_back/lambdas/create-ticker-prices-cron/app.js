@@ -15,7 +15,6 @@ exports.handler = async (event, context) => {
             FROM tickers
         `;
         const scanTickersRes = await client.query(scanTickersQuery);
-        console.log(scanTickersRes);
 
         // Pull coin prices from Coingecko
         const coinIds = scanTickersRes.rows.map(obj => obj['coin_id']).join('%2C');
@@ -48,9 +47,9 @@ exports.handler = async (event, context) => {
                     '${data[t['coin_id']]['gbp_24h_change']}'
                 )
             `;
-            console.log(`Insert ticker price query ${insertTickerPriceQuery}`);
-            const insertTickerPriceRes = await client.query(insertTickerPriceQuery);
-            console.log(insertTickerPriceRes);
+            // console.log(`Insert ticker price query ${insertTickerPriceQuery}`);
+            await client.query(insertTickerPriceQuery);
+            // console.log(insertTickerPriceRes);
 
             tickerIdToCoin[t['ticker_id']] = {
                 price: data[t['coin_id']]['gbp'],
@@ -60,40 +59,6 @@ exports.handler = async (event, context) => {
             };
         }));
         await client.end();
-        // params = {
-        //     TableName: HoldingsTableName
-        // };
-        // const holdings = await dbClient.scan(params).promise();
-        // await Promise.all(holdings.Items.map(async (h) => {
-        //     const currCoin = tickerIdToCoin[h['tickerId']['S']];
-        //     params = {
-        //         TableName: HoldingsTableName,
-        //         Key: {
-        //             'id': {
-        //                 S: h['id']['S']
-        //             }
-        //         },
-        //         UpdateExpression: `SET currentPrice = :currentPrice, marketValue = :marketValue, twentyFourHourChange = :twentyFourHourChange, marketCap = :marketCap, volume = :volume`,
-        //         ExpressionAttributeValues: {
-        //             ':currentPrice': {
-        //                 N: `${currCoin['price']}`
-        //             },
-        //             ':marketValue': {
-        //                 N: `${currCoin['price'] * h['units']['N']}`
-        //             },
-        //             ':twentyFourHourChange': {
-        //                 N: `${currCoin['change']}`
-        //             },
-        //             ':marketCap': {
-        //                 N: `${currCoin['marketCap']}`
-        //             },
-        //             ':volume': {
-        //                 N: `${currCoin['volume']}`
-        //             }
-        //         }
-        //     };
-        //     await dbClient.updateItem(params).promise();
-        // }));
     } catch (err) {
         console.log(err);
     }

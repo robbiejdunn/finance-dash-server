@@ -55,11 +55,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ClippedDrawer() {
     const classes = useStyles();
-    const [tickersOpen, tickersSetOpen] = React.useState(true);
-
-    const handleTickersOpenClick = () => {
-        tickersSetOpen(!tickersOpen);
-    }
 
     return (
         <Router>

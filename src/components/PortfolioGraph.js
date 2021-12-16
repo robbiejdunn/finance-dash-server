@@ -39,6 +39,7 @@ export default function PortfolioGraph(props) {
                         y: tickerPrice.price,
                         color: holding?.color,
                     });
+                    return null;
                 });
                 holdingPrices.sort((a,b) => (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0))
 
@@ -46,7 +47,7 @@ export default function PortfolioGraph(props) {
                 let currentUnits = 0;
                 if(sortedTxDateValues) {
                     holdingPrices.map((price) => {
-                        if(currentTx != sortedTxDateValues.length) {
+                        if(currentTx !== sortedTxDateValues.length) {
                             while(price.x >= sortedTxDateValues[currentTx].datetime) {
                                 currentUnits += parseFloat(sortedTxDateValues[currentTx].units);
                                 currentTx += 1;
@@ -56,24 +57,15 @@ export default function PortfolioGraph(props) {
                             }
                         }
                         price.y = price.y * currentUnits;
+                        return null;
                     })
                     portData.push([holding.ticker_name, holdingPrices]);
                 }
-
-                
+                return null;
             });
             setData(portData);
         }
     }, [props.holdingsJoined]);
-  
-    const data2 = [
-        { x: '2020-01-01', y: 30 },
-        { x: '2020-01-02', y: 40 },
-        { x: '2020-01-03', y: 80 },
-        { x: '2021-01-01', y: 50 },
-        { x: '2021-01-02', y: 10 },
-        { x: '2021-01-03', y: 20 },
-    ];
   
     const accessors = {
         xAccessor: d => new 

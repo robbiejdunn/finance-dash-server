@@ -146,10 +146,6 @@ const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
     const { numSelected } = props;
 
-    const handleAddHoldingClick = (event) => {
-        console.log("holdingadded")
-    }
-
     return (
         <Toolbar
             className={clsx(classes.root, {
@@ -305,12 +301,12 @@ export default function HoldingsTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
-                                    let totalGainClass;
-                                    if (row.totalGain < 0) {
-                                        totalGainClass = classes.gainLoss
-                                    } else {
-                                        totalGainClass = classes.gainProfit
-                                    }
+                                    // let totalGainClass;
+                                    // if (row.totalGain < 0) {
+                                    //     totalGainClass = classes.gainLoss
+                                    // } else {
+                                    //     totalGainClass = classes.gainProfit
+                                    // }
                                     return (
                                         <TableRow
                                             hover

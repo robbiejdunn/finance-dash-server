@@ -81,28 +81,15 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const columns = [
-    { 
-        field: 'datetime', 
-        headerName: 'Datetime',
-        width: 250,
-    },
-    { 
-        field: 'price', 
-        headerName: 'Price',
-        flex: 1,
-    },
-];
-
 export default function HoldingView() {
     const classes = useStyles();
     const { holdingId } = useParams();
 
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
-    const [units, setUnits] = useState(0);
+    // const [units, setUnits] = useState(0);
     const [currentPrice, setCurrentPrice] = useState(0);
-    const [tickerId, setTickerId] = useState('');
+    // const [tickerId, setTickerId] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [tickerPrices, setTickerPrices] = useState([]);
     const [transactions, setTransactions] = useState([]);
@@ -117,9 +104,9 @@ export default function HoldingView() {
             console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
-            setUnits(res.data.holding.units);
+            // setUnits(res.data.holding.units);
             setCurrentPrice(res.data.holding.current_price);
-            setTickerId(res.data.holding.ticker_id);
+            // setTickerId(res.data.holding.ticker_id);
             setImageUrl(res.data.holding.image_url);
             setTwentyFourHrChange(res.data.holding.twenty_four_hour_change);
             setTwentyFourHrVolume(res.data.holding.volume);
@@ -129,11 +116,7 @@ export default function HoldingView() {
             }));
             setTransactions(res.data.transactions);
         });
-    }, []);
-
-    const openCreateTransactionModal = (event) => {
-
-    }
+    }, [holdingId]);
 
     return (
         <div className={classes.root} component={Paper}>
@@ -189,7 +172,7 @@ export default function HoldingView() {
                             </div>
                         </div>
                         <div className={classes.flexLogo}>
-                            <img src={imageUrl} className={classes.logo} ></img>
+                            <img src={imageUrl} className={classes.logo} alt="Coin logo" ></img>
                         </div>
                     </div>
                     <Divider className={classes.divider}></Divider>

@@ -46,9 +46,9 @@ export default function AreaChart({
         hideTooltip,
     } = useTooltip();
 
-    const innerWidth = width - margin.left - margin.right;
+    // const innerWidth = width - margin.left - margin.right;
 
-    const { containerRef, TooltipInPortal } = useTooltipInPortal({
+    const { containerRef } = useTooltipInPortal({
         // use TooltipWithBounds
         detectBounds: true,
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
@@ -71,7 +71,7 @@ export default function AreaChart({
             tooltipTop: yScale(getPrice(d)),
         });
         },
-        [showTooltip, xScale, yScale]
+        [showTooltip, xScale, yScale, chartData]
     );
 
     const gridColor = '#ccc';
@@ -96,9 +96,6 @@ export default function AreaChart({
             textAnchor: 'end',
         }
     };
-
-    const tickFormat = (v, i) => v.toISOString().slice(0, 16);
-
 
     return (
         <div width={width + margin.left + margin.right} height={yMax + margin.bottom + margin.top} ref={containerRef} style={{position: 'relative'}}>

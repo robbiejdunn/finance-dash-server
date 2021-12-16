@@ -7,8 +7,8 @@ import HoldingsPieChart from './HoldingsPieChart';
 
 export default function Dashboard(props) {
     const [portfolioValue, setPortfolioValue] = useState(0);
-    const [holdings, setHoldings] = useState();
-    const [transactions, setTransactions] = useState([]);
+    // const [holdings, setHoldings] = useState();
+    // const [transactions, setTransactions] = useState([]);
     const [holdingsJoined, setHoldingsJoined] = useState();
     const [pieChartData, setPieChartData] = useState([]);
     
@@ -28,6 +28,7 @@ export default function Dashboard(props) {
                 if(holding.market_value > 0) {
                     holdingsDict[holding.holding_id] = {...holding, color: currColor};
                 }
+                return null;
             });
             console.log(holdingsDict);
 
@@ -40,6 +41,7 @@ export default function Dashboard(props) {
                         holdingsDict[transaction.holding_id].transactions = [transaction];
                     }
                 }
+                return null;
             });
             console.log(holdingsDict);
             
@@ -51,14 +53,16 @@ export default function Dashboard(props) {
                 } else {
                     tickerPricesDict[tp.ticker_id] = [tp];
                 }
+                return null;
             });
             console.log(tickerPricesDict);
             Object.entries(holdingsDict).map(([key, val]) => {
                 holdingsDict[key].t_prices = tickerPricesDict[val.ticker_id];
+                return null;
             });
 
-            setHoldings(res.data.holdings);
-            setTransactions(res.data.transactions);
+            // setHoldings(res.data.holdings);
+            // setTransactions(res.data.transactions);
             const holdingsValues = res.data.holdings.map((holding) => {
                 return holding.market_value;
             });

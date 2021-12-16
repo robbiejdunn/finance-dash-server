@@ -102,9 +102,6 @@ exports.handler = async (event, context) => {
         await fsp.writeFile('/tmp/bulk.tsv', json2tsv(tsvHistorical), 'utf8');
         console.log('TSV file written successfully');
 
-        // const readData = await fsp.readFile('/tmp/bulk.csv', 'utf8');
-        // console.log(`CSV read successfully ${readData}`);
-
         console.log('COPYing file to PG');
         const pool = new Pool();
         console.log("Connecting to PG pool");

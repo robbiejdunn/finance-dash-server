@@ -21,8 +21,8 @@ exports.handler = async (event, context) => {
         `;
         const getHoldingResp = await client.query(getHoldingQuery);
         console.log(getHoldingResp);
-        if (getHoldingResp.rowCount != 1) {
-            throw `Expected 1 row returned found ${getHoldingResp.rowCount}`;
+        if (getHoldingResp.rowCount !== 1) {
+            throw Error(`Expected 1 row returned found ${getHoldingResp.rowCount}`);
         }
 
         // Get transactions for the holding
