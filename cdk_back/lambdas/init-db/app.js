@@ -109,6 +109,9 @@ exports.handler = async(event, context) => {
                     datetime                    timestamp,
                     price                       numeric,
                     twenty_four_hour_change     numeric,
+                    market_cap                  numeric,
+                    volume                      numeric,
+                    last_updated                timestamp,
                     CONSTRAINT fk_ticker
                         FOREIGN KEY(ticker_id)
                             REFERENCES tickers(ticker_id)

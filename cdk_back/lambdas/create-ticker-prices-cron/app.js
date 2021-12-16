@@ -38,13 +38,19 @@ exports.handler = async (event, context) => {
                     ticker_id,
                     datetime,
                     price,
-                    twenty_four_hour_change
+                    twenty_four_hour_change,
+                    market_cap,
+                    volume,
+                    last_updated
                 ) VALUES (
                     '${uuidv4()}',
                     '${t['ticker_id']}',
                     '${dateStr}',
                     '${data[t['coin_id']]['gbp']}',
-                    '${data[t['coin_id']]['gbp_24h_change']}'
+                    '${data[t['coin_id']]['gbp_24h_change']}',
+                    '${data[t['coin_id']]['gbp_market_cap']}',
+                    '${data[t['coin_id']]['gbp_24h_vol']}',
+                    '${new Date(data[t['coin_id']]['last_updated_at']).toISOString()}'
                 )
             `;
             // console.log(`Insert ticker price query ${insertTickerPriceQuery}`);

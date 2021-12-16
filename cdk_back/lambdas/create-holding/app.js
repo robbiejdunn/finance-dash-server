@@ -111,16 +111,19 @@ exports.handler = async (event, context) => {
             + '&interval=daily'
         );
         const historicalRes = await axios.get(coinGeckoHistoricalDataEndpoint);
-        const tsvHistorical = historicalRes.data.prices.map(([datetime, price]) => {
-            if (parseFloat(price)) {
-                return [
-                    `${uuidv4()}`,                          // tp_id
-                    tickerId,                               // ticker_id
-                    new Date(datetime).toISOString(),       // datetime
-                    `${price}`,                             // price
-                    '0',                                    // twenty_four_hour_change (TBD)
-                ];
-            }
+
+        const tsvHistorical = historicalRes.data.prices.map((curr, index) => {
+            const histDate = curr[0];
+            return [
+                `${uuidv4()}`,                                      // tp_id
+                tickerId,                                           // ticker_id
+                new Date(histDate).toISOString(),                   // datetime
+                `${curr[1]}`,                                       // price
+                'NULL',                                             // twenty_four_hour_change
+                `${historicalRes.data.market_caps[index][1]}`,      // market cap
+                `${historicalRes.data.total_volumes[index][1]}`,    // volume
+                'NULL',                                             // last_updated 
+            ]
         });
 
         console.log('Writing historical data to TSV in preparation for PG COPY');
@@ -132,7 +135,7 @@ exports.handler = async (event, context) => {
         console.log("Connecting to PG pool");
         const poolClient = await pool.connect();
         console.log("Connected to PG pool");
-        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN'));
+        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'NULL\''));
         const fileStream = fs.createReadStream('/tmp/bulk.tsv');
         fileStream.pipe(stream);
 
