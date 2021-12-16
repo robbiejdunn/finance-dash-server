@@ -10,6 +10,8 @@
     "dependencies": {
         "axios": "^0.21.1",
         "pg": "^8.7.1",
+        "pg-copy-streams": "^6.0.2",
+        "tsv-json": "^2.0.0",
         "uuid": "*"
     }
 }

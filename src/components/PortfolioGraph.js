@@ -108,13 +108,14 @@ export default function PortfolioGraph(props) {
             <AnimatedGrid columns={false} numTicks={4} />
             <AnimatedAreaStack stackOffset={0}>
                 {data.map(([holdingName, holding]) => {
+                    console.log(holdingName, holding)
                     return (
                         <AreaSeries 
                             key={holdingName}
                             dataKey={holdingName}
                             fillOpacity={0.4}
                             data={holding}
-                            lineProps={{fill: holding[0].color}}
+                            lineProps={{fill: holding.color}}
                             {...accessors}
                         />
                     )
