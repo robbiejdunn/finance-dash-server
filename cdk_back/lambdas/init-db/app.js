@@ -140,7 +140,7 @@ exports.handler = async(event, context) => {
                         tickers.image_url AS image_url,
                         tickers.coin_id AS coin_id,
                         tickers.ticker_id AS ticker_id,
-                        holdings.color AS colorw
+                        holdings.color AS color
                     FROM holdings 
                         INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
             `;

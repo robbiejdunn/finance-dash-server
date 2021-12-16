@@ -38,6 +38,7 @@ export default function AreaChart({
     chartColor,
 }) {
 
+    console.log(chartColor);
     const {
         tooltipData,
         tooltipLeft,

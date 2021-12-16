@@ -116,6 +116,7 @@ export default function HoldingView() {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
+            console.log(`Setting holding color to ${res.data.holding.color}`)
             setHoldingColor(res.data.holding.color);
         });
     }, [holdingId]);
