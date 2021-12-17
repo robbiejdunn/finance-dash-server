@@ -33,12 +33,34 @@ export function toCurrencyString(v) {
     return `£${asStr}`;
 }
 
-export function toGainString(v) {
+export function toGainString(v, m) {
     const parsed = parseFloat(v);
-    const currencyStr = toCurrencyString(v);
-    if (parsed < 0) {
-        return `-${currencyStr}`;
+    const chg = (Math.abs(v) / 100) * m;
+    const parsedFixed = parsed.toFixed(2);
+    const currencyStr = toCurrencyString(chg);
+    if (parseFloat(m) === 0) {
+        return (
+            <div style={{ color: 'gray' }}>
+                +{currencyStr} (+0.00%)
+            </div>
+        );
+    } else if (parsed < 0) {
+        return (
+            <div style={{ color: 'red' }}>
+                -{currencyStr} ({parsedFixed}%)
+            </div>
+        );
+    } else if (parsed > 0) {
+        return (
+            <div style={{ color: 'green' }}>
+                +{currencyStr} (+{parsedFixed}%)
+            </div>
+        );
     } else {
-        return `+${currencyStr}`;
+        return (
+            <div style={{ color: 'gray' }}>
+                +{currencyStr} (+{parsedFixed}%)
+            </div>
+        );
     }
 }

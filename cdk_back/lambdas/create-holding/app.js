@@ -119,10 +119,10 @@ exports.handler = async (event, context) => {
                 tickerId,                                           // ticker_id
                 new Date(histDate).toISOString(),                   // datetime
                 `${curr[1]}`,                                       // price
-                'NULL',                                             // twenty_four_hour_change
+                'null',                                             // twenty_four_hour_change
                 `${historicalRes.data.market_caps[index][1]}`,      // market cap
                 `${historicalRes.data.total_volumes[index][1]}`,    // volume
-                'NULL',                                             // last_updated 
+                'null',                                             // last_updated 
             ]
         });
 
@@ -135,7 +135,7 @@ exports.handler = async (event, context) => {
         console.log("Connecting to PG pool");
         const poolClient = await pool.connect();
         console.log("Connected to PG pool");
-        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'NULL\''));
+        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'null\''));
         const fileStream = fs.createReadStream('/tmp/bulk.tsv');
         fileStream.pipe(stream);
 

@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
                     '${data[t['coin_id']]['gbp_24h_change']}',
                     '${data[t['coin_id']]['gbp_market_cap']}',
                     '${data[t['coin_id']]['gbp_24h_vol']}',
-                    '${new Date(data[t['coin_id']]['last_updated_at']).toISOString()}'
+                    '${dateStr}'
                 )
             `;
             // console.log(`Insert ticker price query ${insertTickerPriceQuery}`);

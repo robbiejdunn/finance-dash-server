@@ -13,7 +13,7 @@ exports.handler = async (event, context) => {
         await client.connect();
         console.log("Connected to postgres")
 
-        const listHoldingsQuery = 'SELECT * FROM get_holding_view';
+        const listHoldingsQuery = 'SELECT * FROM list_holdings_view';
         console.log(`List holdings query: ${listHoldingsQuery}`);
         const listHoldingsResp = await client.query(listHoldingsQuery);
         console.log(listHoldingsResp);
@@ -22,9 +22,12 @@ exports.handler = async (event, context) => {
 
         response.statusCode = 200;
         response.body = JSON.stringify({
-            items: listHoldingsResp.rows.map(
-                obj => ({ ...obj, market_value: `${obj.units * obj.current_price}` })
-            )
+            items: listHoldingsResp.rows.map((h) => {
+                return {
+                     ...h,
+                     holding_twenty_four_hour_change: (h.ticker_twenty_four_hour_change / 100) * h.ticker_price
+                }
+            })
         });
     } catch (err) {
         console.log(err);
