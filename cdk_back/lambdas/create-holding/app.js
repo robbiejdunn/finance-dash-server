@@ -101,6 +101,41 @@ exports.handler = async (event, context) => {
         const createHoldingResp = await client.query(createHoldingQuery);
         console.log(createHoldingResp);
 
+        // Create 1 current ticker price
+        const coinGeckoTickerEndpoint = ('https://api.coingecko.com/api/v3/simple/price'
+            + `?ids=${pickedCryptoId}`
+            + '&vs_currencies=gbp'
+            + '&include_24hr_change=true'
+            + '&include_market_cap=true'
+            + '&include_24hr_vol=true'
+        );
+        const coinGeckoTickerRes = await axios.get(coinGeckoTickerEndpoint);
+        const tData = coinGeckoTickerRes.data;
+        const dateStr = new Date().toISOString();
+        const insertTickerPriceQuery = `
+            INSERT INTO ticker_prices (
+                tp_id,
+                ticker_id,
+                datetime,
+                price,
+                twenty_four_hour_change,
+                market_cap,
+                volume,
+                last_updated
+            ) VALUES (
+                '${uuidv4()}',
+                '${tickerId}',
+                '${dateStr}',
+                '${tData[pickedCryptoId]['gbp']}',
+                '${tData[pickedCryptoId]['gbp_24h_change']}',
+                '${tData[pickedCryptoId]['gbp_market_cap']}',
+                '${tData[pickedCryptoId]['gbp_24h_vol']}',
+                '${dateStr}'
+            )
+        `;
+        console.log(insertTickerPriceQuery);
+        const insertTickerPriceRes = await client.query(insertTickerPriceQuery);
+        console.log(insertTickerPriceRes);
         await client.end();
 
         // Use postgres COPY for historical data
@@ -111,51 +146,65 @@ exports.handler = async (event, context) => {
             + '&interval=daily'
         );
         const historicalRes = await axios.get(coinGeckoHistoricalDataEndpoint);
-        const tsvHistorical = historicalRes.data.prices.map(([datetime, price]) => {
-            if (parseFloat(price)) {
-                return [
-                    `${uuidv4()}`,                          // tp_id
-                    tickerId,                               // ticker_id
-                    new Date(datetime).toISOString(),       // datetime
-                    `${price}`,                             // price
-                    '0',                                    // twenty_four_hour_change (TBD)
-                ];
-            }
+
+        const tsvHistorical = historicalRes.data.prices.map((curr, index) => {
+            const histDate = curr[0];
+            return [
+                `${uuidv4()}`,                                      // tp_id
+                tickerId,                                           // ticker_id
+                new Date(histDate).toISOString(),                   // datetime
+                `${curr[1]}`,                                       // price
+                'null',                                             // twenty_four_hour_change
+                `${historicalRes.data.market_caps[index][1]}`,      // market cap
+                `${historicalRes.data.total_volumes[index][1]}`,    // volume
+                'null',                                             // last_updated 
+            ]
         });
 
         console.log('Writing historical data to TSV in preparation for PG COPY');
-        await fsp.writeFile('/tmp/bulk.tsv', json2tsv(tsvHistorical), 'utf8');
-        console.log('TSV file written successfully');
+        const tmpFileName = `/tmp/bulk_${uuidv4()}.tsv`;
 
-        console.log('COPYing file to PG');
-        const pool = new Pool();
-        console.log("Connecting to PG pool");
-        const poolClient = await pool.connect();
-        console.log("Connected to PG pool");
-        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN'));
-        const fileStream = fs.createReadStream('/tmp/bulk.tsv');
-        fileStream.pipe(stream);
-
-        const streamEnd = new Promise((resolve, reject) => {
-            fileStream.on('error', (err) => {
-                console.log(`File stream error ${err}`);
+        try {
+            await fsp.writeFile(tmpFileName, json2tsv(tsvHistorical), 'utf8');
+            console.log(`TSV file ${tmpFileName} written successfully`);
+    
+            console.log('COPYing file to PG');
+            const pool = new Pool();
+            console.log("Connecting to PG pool");
+            const poolClient = await pool.connect();
+            try {
+                console.log("Connected to PG pool");
+                const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'null\''));
+                const fileStream = fs.createReadStream(tmpFileName);
+                fileStream.pipe(stream);
+        
+                const streamEnd = new Promise((resolve, reject) => {
+                    fileStream.on('error', (err) => {
+                        console.log(`File stream error ${err}`);
+                        poolClient.release();
+                        reject();
+                    });
+                    stream.on('error', (err) => {
+                        console.log(`Stream error ${err}`);
+                        poolClient.release();
+                        reject();
+                    });
+                    stream.on('finish', () => {
+                        console.log('Stream completed');
+                        poolClient.release();
+                        resolve(stream);
+                    });
+                });
+                const streamRes = await streamEnd;
+                console.log(streamRes);
+                console.log('COPY completed');
+            } finally {
                 poolClient.release();
-                reject();
-            });
-            stream.on('error', (err) => {
-                console.log(`Stream error ${err}`);
-                poolClient.release();
-                reject();
-            });
-            stream.on('finish', () => {
-                console.log('Stream completed');
-                poolClient.release();
-                resolve(stream);
-            });
-        });
-        const streamRes = await streamEnd;
-        console.log(streamRes);
-        console.log('COPY completed');
+            }
+        } finally {
+            await fsp.unlink(tmpFileName);
+            console.log(`Deleted file ${tmpFileName} successfully`);
+        } 
 
         response.statusCode = 200;
         response.body = "Success";

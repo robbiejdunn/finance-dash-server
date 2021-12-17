@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    // backgroundColor: '#0b3910'
+    background: 'linear-gradient(0deg, rgba(41,3,48,1) 0%, rgba(116,15,135,1) 100%)'
   },
   drawer: {
     width: drawerWidth,
@@ -46,7 +46,8 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(3),
   },
   navItemSelected: {
-    backgroundColor: theme.palette.secondary.main,
+    // backgroundColor: theme.palette.secondary.main,
+    background: 'linear-gradient(0deg, rgba(74,57,13,1) 0%, rgba(163,128,32,1) 100%)'
   },
   nested: {
     paddingLeft: theme.spacing(4),
@@ -79,7 +80,7 @@ export default function ClippedDrawer() {
             >
                 <Toolbar />
                 <div className={classes.drawerContainer}>
-                    <List>
+                    <List disablePadding>
                         <ListItem 
                             button 
                             key='Dashboard' 

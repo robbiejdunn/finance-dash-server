@@ -87,7 +87,7 @@ export default function HoldingView() {
 
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
-    // const [units, setUnits] = useState(0);
+    const [units, setUnits] = useState(0);
     const [currentPrice, setCurrentPrice] = useState(0);
     // const [tickerId, setTickerId] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -105,18 +105,26 @@ export default function HoldingView() {
             console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
-            // setUnits(res.data.holding.units);
-            setCurrentPrice(res.data.holding.current_price);
+            setUnits(res.data.holding.units);
+            // setCurrentPrice(res.data.holding.current_price);
             // setTickerId(res.data.holding.ticker_id);
             setImageUrl(res.data.holding.image_url);
-            setTwentyFourHrChange(res.data.holding.twenty_four_hour_change);
-            setTwentyFourHrVolume(res.data.holding.volume);
-            setMarketCap(res.data.holding.market_cap);
+            // setTwentyFourHrChange(res.data.holding.twenty_four_hour_change);
+            // setTwentyFourHrVolume(res.data.holding.volume);
+            // setMarketCap(res.data.holding.market_cap);
             setTickerPrices(res.data.tickerPrices.map((p) => {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
+            console.log(`Setting holding color to ${res.data.holding.color}`)
             setHoldingColor(res.data.holding.color);
+
+            const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
+            console.log(recentTP);
+            setCurrentPrice(recentTP.price);
+            setTwentyFourHrChange(recentTP.twenty_four_hour_change);
+            setMarketCap(recentTP.market_cap);
+            setTwentyFourHrVolume(recentTP.volume);
         });
     }, [holdingId]);
 
@@ -178,11 +186,49 @@ export default function HoldingView() {
                         </div>
                     </div>
                     <Divider className={classes.divider}></Divider>
-                    <TransactionsTable transactions={transactions} currentPrice={currentPrice} holdingId={holdingId}></TransactionsTable>
+                    <div style={{ display: 'flex' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', flex: 1 }}>
+                                <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
+                                    <Typography variant='h6'>Units</Typography>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <Typography variant='h6'>{units}</Typography>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flex: 1 }}>
+                                <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
+                                    <Typography variant='h6'>Market value</Typography>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <Typography variant='h6'>
+                                        {toCurrencyString(units * currentPrice)}
+                                    </Typography>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ flex: 1, display: 'flex' }}>
+                            <div style={{ flex: 1 }}>
+                                <Typography variant='body1'>Price</Typography>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <Typography variant='body1'>{toCurrencyString(currentPrice)}</Typography>
+                            </div>
+                        </div>
+                    </div>
+                    <TransactionsTable 
+                        transactions={transactions}
+                        currentPrice={currentPrice}
+                        twentyFour={twentyFourHrChange}
+                        holdingId={holdingId}
+                    ></TransactionsTable>
+                    <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} />
+                    
                 </div>
+                
             </div>            
             {/* <XYGraph graphData = {tickerPrices} /> */}
-            <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} />
+            {/* <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} /> */}
             {/* <HoldingPriceChart 
                 chartData={tickerPrices}
                 hideBottomAxis

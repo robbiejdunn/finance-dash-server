@@ -19,7 +19,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { toCurrencyString } from '../../utils';
+import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
 
 
@@ -58,11 +58,14 @@ function stableSort(array, comparator) {
 
 
 const headCells = [
+    { id: 'logo', numeric: false, disablePadding: false, label: '', width: '25px' },
     { id: 'name', numeric: false, disablePadding: false, label: 'Name' },
-    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol' },
-    { id: 'currentPrice', numeric: false, disablePadding: false, label: 'Current Price' },
     { id: 'units', numeric: false, disablePadding: false, label: 'Units' },
-    { id: 'marketValue', numeric: false, disablePadding: false, label: 'Market Value'}
+    { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price' },
+    { id: 'ticker_twenty_four_change', numeric: false, disablePadding: false, label: 'Price 24h' },
+    { id: 'market_value', numeric: false, disablePadding: false, label: 'Market value'},
+    { id: 'market_value_twenty_four_change', numeric: false, disablePadding: false, label: 'Gain 24h'},
+    { id: 'market_value_total_change', numeric: false, disablePadding: false, label: 'Gain total'},
 ];
 
 
@@ -89,6 +92,7 @@ function EnhancedTableHead(props) {
                     align={headCell.numeric ? 'right' : 'left'}
                     padding={headCell.disablePadding ? 'none' : 'normal'}
                     sortDirection={orderBy === headCell.id ? order : false}
+                    width={headCell.width ? headCell.width : null}
                 >
                     <TableSortLabel
                         active={orderBy === headCell.id}
@@ -201,6 +205,10 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     top: 20,
     width: 1,
+  },
+  tickerLogo: {
+      height: 30,
+      verticalAlign: 'middle'
   }
 }));
 
@@ -214,16 +222,19 @@ export default function HoldingsTable(props) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
-    const rows = props.holdings.map(holding => {
-        return createData(
-            holding['holding_id'],
-            holding['ticker_name'],
-            holding['ticker_symbol'],
-            holding['units'],
-            holding['current_price'],
-            holding['market_value'],
-        );
-    });
+    const rows = props.holdings;
+    // const rows = props.holdings.map(holding => {
+    //     console.log(holding)
+    //     return createData(
+    //         holding['holding_id'],
+    //         holding['units'],
+    //         holding['ticker_name'],
+    //         holding['ticker_symbol'],
+    //         holding['units'],
+    //         holding['ticker_price'],
+    //         holding['market_value'],
+    //     );
+    // });
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -233,7 +244,7 @@ export default function HoldingsTable(props) {
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.id);
+            const newSelecteds = rows.map((n) => n.holding_id);
             setSelected(newSelecteds);
             return;
         }
@@ -299,7 +310,7 @@ export default function HoldingsTable(props) {
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
-                                    const isItemSelected = isSelected(row.id);
+                                    const isItemSelected = isSelected(row.holding_id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
                                     // let totalGainClass;
                                     // if (row.totalGain < 0) {
@@ -313,32 +324,35 @@ export default function HoldingsTable(props) {
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
-                                            key={row.id}
+                                            key={row.holding_id}
                                             selected={isItemSelected}
-                                            onDoubleClick={(event) => handleRowCLick(event, row.id)}
+                                            onDoubleClick={(event) => handleRowCLick(event, row.holding_id)}
                                             sx={{cursor: 'pointer'}}
                                         >
                                         <TableCell padding="checkbox">
                                             <Checkbox
-                                                onClick={(event) => handleClick(event, row.id)}
+                                                onClick={(event) => handleClick(event, row.holding_id)}
                                                 checked={isItemSelected}
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                             />
                                         </TableCell>
                                         <TableCell component="th" id={labelId} scope="row">
-                                        {row.name}
+                                        <img src={row.ticker_logo} alt="Coin logo" className={classes.tickerLogo} ></img>
                                         </TableCell>
-                                        <TableCell>{row.symbol}</TableCell>
-                                        <TableCell>{toCurrencyString(row.currentPrice)}</TableCell>
+                                        <TableCell>{row.ticker_name} ({row.ticker_symbol})</TableCell>
                                         <TableCell>{row.units}</TableCell>
-                                        <TableCell>{toCurrencyString(row.marketValue)}</TableCell>
+                                        <TableCell>{toCurrencyString(row.ticker_price)}</TableCell>
+                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.ticker_price)}</TableCell>
+                                        <TableCell>{toCurrencyString(row.market_value)}</TableCell>
+                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
+                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
                                         </TableRow>
                                     );
                                 }
                             )}
                             {emptyRows > 0 && (
                                 <TableRow style={{ height: 53 * emptyRows }}>
-                                <TableCell colSpan={6} />
+                                <TableCell colSpan={9} />
                                 </TableRow>
                             )}
                         </TableBody>

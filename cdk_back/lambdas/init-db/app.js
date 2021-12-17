@@ -109,6 +109,9 @@ exports.handler = async(event, context) => {
                     datetime                    timestamp,
                     price                       numeric,
                     twenty_four_hour_change     numeric,
+                    market_cap                  numeric,
+                    volume                      numeric,
+                    last_updated                timestamp,
                     CONSTRAINT fk_ticker
                         FOREIGN KEY(ticker_id)
                             REFERENCES tickers(ticker_id)
@@ -137,14 +140,46 @@ exports.handler = async(event, context) => {
                         tickers.image_url AS image_url,
                         tickers.coin_id AS coin_id,
                         tickers.ticker_id AS ticker_id,
-                        holdings.color AS colorw
+                        holdings.color AS color
                     FROM holdings 
                         INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
             `;
             const createGetHoldingViewRes = await client.query(createGetHoldingViewQuery);
             console.log(createGetHoldingViewRes);
+        } catch (err) {
+            console.log(err);
         }
-        catch (err) {
+
+        // List holdings view
+        try {
+            const createListHoldingsViewQuery = `
+                CREATE OR REPLACE VIEW list_holdings_view AS
+                    SELECT DISTINCT ON (h)
+                        h.holding_id AS holding_id,
+                        h.units AS units,
+                        t.ticker_name AS ticker_name,
+                        t.symbol AS ticker_symbol,
+                        t.image_url AS ticker_logo,
+                        p.price AS ticker_price,
+                        p.twenty_four_hour_change AS ticker_twenty_four_change,
+                        p.last_updated AS ticker_last_updated,
+                        p.price * h.units AS market_value,
+                        p.twenty_four_hour_change * h.units AS holding_twenty_four_hour_change
+                    FROM holdings h
+                        JOIN tickers t on h.ticker_id = t.ticker_id
+                        JOIN (
+                            SELECT
+                                C.*,
+                                row_number() OVER (
+                                    PARTITION BY C.ticker_id
+                                    ORDER BY C.datetime DESC
+                                ) AS rn
+                            FROM ticker_prices C
+                        ) p ON p.ticker_id = t.ticker_id and p.rn = 1
+            `;
+            const createListHoldingsViewRes = await client.query(createListHoldingsViewQuery);
+            console.log(createListHoldingsViewRes);
+        } catch (err) {
             console.log(err);
         }
 

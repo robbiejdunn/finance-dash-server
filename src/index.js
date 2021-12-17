@@ -9,10 +9,10 @@ const theme = createTheme({
     palette: {
         mode: 'dark',
         primary: {
-            main: '#c5851199'
+            main: '#740f87'
         },
         secondary: {
-            main: '#c5851199'
+            main: '#a38020'
         }
     }
 });
