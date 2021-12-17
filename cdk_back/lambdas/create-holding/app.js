@@ -101,6 +101,41 @@ exports.handler = async (event, context) => {
         const createHoldingResp = await client.query(createHoldingQuery);
         console.log(createHoldingResp);
 
+        // Create 1 current ticker price
+        const coinGeckoTickerEndpoint = ('https://api.coingecko.com/api/v3/simple/price'
+            + `?ids=${pickedCryptoId}`
+            + '&vs_currencies=gbp'
+            + '&include_24hr_change=true'
+            + '&include_market_cap=true'
+            + '&include_24hr_vol=true'
+        );
+        const coinGeckoTickerRes = await axios.get(coinGeckoTickerEndpoint);
+        const tData = coinGeckoTickerRes.data;
+        const dateStr = new Date().toISOString();
+        const insertTickerPriceQuery = `
+            INSERT INTO ticker_prices (
+                tp_id,
+                ticker_id,
+                datetime,
+                price,
+                twenty_four_hour_change,
+                market_cap,
+                volume,
+                last_updated
+            ) VALUES (
+                '${uuidv4()}',
+                '${tickerId}',
+                '${dateStr}',
+                '${tData[pickedCryptoId]['gbp']}',
+                '${tData[pickedCryptoId]['gbp_24h_change']}',
+                '${tData[pickedCryptoId]['gbp_market_cap']}',
+                '${tData[pickedCryptoId]['gbp_24h_vol']}',
+                '${dateStr}'
+            )
+        `;
+        console.log(insertTickerPriceQuery);
+        const insertTickerPriceRes = await client.query(insertTickerPriceQuery);
+        console.log(insertTickerPriceRes);
         await client.end();
 
         // Use postgres COPY for historical data
@@ -165,8 +200,7 @@ exports.handler = async (event, context) => {
         } finally {
             await fsp.unlink(tmpFileName);
             console.log(`Deleted file ${tmpFileName} successfully`);
-        }
- 
+        } 
 
         response.statusCode = 200;
         response.body = "Success";

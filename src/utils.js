@@ -24,12 +24,7 @@ export const category20Colors = [
 
 export function toCurrencyString(v) {
     const parsed = parseFloat(v);
-    const asStr = Math.abs(parsed).toLocaleString(
-        'EN-US',
-        {
-            minimumFractionDigits: 2
-        }
-    );
+    const asStr = Math.abs(parsed);
     return `£${asStr}`;
 }
 
