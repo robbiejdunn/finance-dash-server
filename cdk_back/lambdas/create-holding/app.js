@@ -127,38 +127,46 @@ exports.handler = async (event, context) => {
         });
 
         console.log('Writing historical data to TSV in preparation for PG COPY');
-        await fsp.writeFile('/tmp/bulk.tsv', json2tsv(tsvHistorical), 'utf8');
-        console.log('TSV file written successfully');
+        const tmpFileName = `/tmp/bulk_${uuidv4()}.tsv`;
 
-        console.log('COPYing file to PG');
-        const pool = new Pool();
-        console.log("Connecting to PG pool");
-        const poolClient = await pool.connect();
-        console.log("Connected to PG pool");
-        const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'null\''));
-        const fileStream = fs.createReadStream('/tmp/bulk.tsv');
-        fileStream.pipe(stream);
-
-        const streamEnd = new Promise((resolve, reject) => {
-            fileStream.on('error', (err) => {
-                console.log(`File stream error ${err}`);
-                poolClient.release();
-                reject();
+        try {
+            await fsp.writeFile(tmpFileName, json2tsv(tsvHistorical), 'utf8');
+            console.log(`TSV file ${tmpFileName} written successfully`);
+    
+            console.log('COPYing file to PG');
+            const pool = new Pool();
+            console.log("Connecting to PG pool");
+            const poolClient = await pool.connect();
+            console.log("Connected to PG pool");
+            const stream = poolClient.query(copyFrom('COPY ticker_prices FROM STDIN WITH NULL as \'null\''));
+            const fileStream = fs.createReadStream(tmpFileName);
+            fileStream.pipe(stream);
+    
+            const streamEnd = new Promise((resolve, reject) => {
+                fileStream.on('error', (err) => {
+                    console.log(`File stream error ${err}`);
+                    poolClient.release();
+                    reject();
+                });
+                stream.on('error', (err) => {
+                    console.log(`Stream error ${err}`);
+                    poolClient.release();
+                    reject();
+                });
+                stream.on('finish', () => {
+                    console.log('Stream completed');
+                    poolClient.release();
+                    resolve(stream);
+                });
             });
-            stream.on('error', (err) => {
-                console.log(`Stream error ${err}`);
-                poolClient.release();
-                reject();
-            });
-            stream.on('finish', () => {
-                console.log('Stream completed');
-                poolClient.release();
-                resolve(stream);
-            });
-        });
-        const streamRes = await streamEnd;
-        console.log(streamRes);
-        console.log('COPY completed');
+            const streamRes = await streamEnd;
+            console.log(streamRes);
+            console.log('COPY completed');
+        } finally {
+            await fsp.unlink(tmpFileName);
+            console.log(`Deleted file ${tmpFileName} successfully`);
+        }
+ 
 
         response.statusCode = 200;
         response.body = "Success";

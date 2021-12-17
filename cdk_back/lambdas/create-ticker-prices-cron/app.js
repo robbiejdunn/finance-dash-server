@@ -29,7 +29,6 @@ exports.handler = async (event, context) => {
         const data = response.data;
 
         // Insert new ticker price for each scanned ticker
-        let tickerIdToCoin = {};
         const dateStr = new Date().toISOString();
         await Promise.all(scanTickersRes.rows.map(async (t) => {
             const insertTickerPriceQuery = `
@@ -56,13 +55,6 @@ exports.handler = async (event, context) => {
             // console.log(`Insert ticker price query ${insertTickerPriceQuery}`);
             await client.query(insertTickerPriceQuery);
             // console.log(insertTickerPriceRes);
-
-            tickerIdToCoin[t['ticker_id']] = {
-                price: data[t['coin_id']]['gbp'],
-                change: data[t['coin_id']]['gbp_24h_change'],
-                marketCap: data[t['coin_id']]['gbp_market_cap'],
-                volume: data[t['coin_id']]['gbp_24h_vol']
-            };
         }));
         await client.end();
     } catch (err) {

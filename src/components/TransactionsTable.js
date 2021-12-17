@@ -18,11 +18,11 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { toCurrencyString } from '../utils';
+import { toCurrencyString, toGainString } from '../utils';
 import CreateTransactionDialog from './CreateTransactionDialog';
 
-function createData(id, datetime, buySell, units, price, totalGain) {
-    return { id, datetime, buySell, units, price, totalGain };
+function createData(id, datetime, buySell, units, price, currentPrice, twentyFour, totalGain) {
+    return { id, datetime, buySell, units, price, currentPrice, twentyFour, totalGain };
 }
 
 function descendingComparator(a, b, orderBy) {
@@ -55,8 +55,10 @@ const headCells = [
     { id: 'datetime', numeric: false, disablePadding: true, label: 'Datetime' },
     { id: 'buySell', numeric: true, disablePadding: false, label: 'Buy/sell' },
     { id: 'units', numeric: true, disablePadding: false, label: 'Units' },
-    { id: 'price', numeric: true, disablePadding: false, label: 'Price' },
-    { id: 'totalGain', numeric: true, disablePadding: false, label: 'Total gain (%)'}
+    { id: 'price', numeric: true, disablePadding: false, label: 'Purchase price' },
+    { id: 'currentPrice', numeric: true, disablePadding: false, label: 'Current price' },
+    { id: 'twentyFourGain', numeric: true, disablePadding: false, label: '24h gain' },
+    { id: 'totalGain', numeric: true, disablePadding: false, label: 'Total gain'}
 ];
 
 function EnhancedTableHead(props) {
@@ -191,12 +193,6 @@ const useStyles = makeStyles((theme) => ({
     top: 20,
     width: 1,
   },
-  gainLoss: {
-    color: '#f03333'
-  },
-  gainProfit: {
-      color: '#13cb13'
-  }
 }));
 
 export default function TransactionsTable(props) {
@@ -214,7 +210,9 @@ export default function TransactionsTable(props) {
             tx['buy_sell'], 
             tx['units'], 
             tx['price'],
-            (props.currentPrice * tx['units']) - tx['price']
+            (props.currentPrice * tx['units']),
+            (props.twentyFour),
+            (props.currentPrice * tx['units']) - tx['price'],
         )
     ));
 
@@ -290,12 +288,6 @@ export default function TransactionsTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
-                                    let totalGainClass;
-                                    if (row.totalGain < 0) {
-                                        totalGainClass = classes.gainLoss
-                                    } else {
-                                        totalGainClass = classes.gainProfit
-                                    }
                                     return (
                                         <TableRow
                                         hover
@@ -318,14 +310,20 @@ export default function TransactionsTable(props) {
                                         <TableCell align="right">{row.buySell}</TableCell>
                                         <TableCell align="right">{row.units}</TableCell>
                                         <TableCell align="right">{toCurrencyString(row.price)}</TableCell>
-                                        <TableCell align="right" className={totalGainClass}>{`${toCurrencyString(row.totalGain)} (${(100 * row.totalGain / row.price).toFixed(2)}%)`}</TableCell>
+                                        <TableCell align="right">{toCurrencyString(row.currentPrice)}</TableCell>
+                                        <TableCell align="right">{toGainString(row.twentyFour, row.price)}</TableCell>
+                                        <TableCell align="right">{toGainString((100 * row.totalGain / row.price), row.price)}
+                                            
+                                            
+                                            {/* {`${toCurrencyString(row.totalGain)} (${(100 * row.totalGain / row.price).toFixed(2)}%)`} */}
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 }
                             )}
                             {emptyRows > 0 && (
                                 <TableRow style={{ height: 53 * emptyRows }}>
-                                <TableCell colSpan={6} />
+                                <TableCell colSpan={8} />
                                 </TableRow>
                             )}
                         </TableBody>
