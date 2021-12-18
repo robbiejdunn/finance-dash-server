@@ -3,14 +3,14 @@ import PortfolioGraph from './PortfolioGraph';
 import axios from 'axios';
 import { toCurrencyString, category20Colors } from '../utils';
 import HoldingsPieChart from './HoldingsPieChart';
+import ContentLoading from './ContentLoading';
 
 
 export default function Dashboard(props) {
     const [portfolioValue, setPortfolioValue] = useState(0);
-    // const [holdings, setHoldings] = useState();
-    // const [transactions, setTransactions] = useState([]);
     const [holdingsJoined, setHoldingsJoined] = useState();
     const [pieChartData, setPieChartData] = useState([]);
+    const [contentLoading, setContentLoading] = useState(true);
     
     useEffect(() => {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio`;
@@ -79,17 +79,25 @@ export default function Dashboard(props) {
                     color: v.color,
                 }
             }));
+            setContentLoading(false);
         });
     }, []);
 
     return (
-        <div>
-            <div>
-                Total portfolio value: {toCurrencyString(portfolioValue)}
-            </div>
-            <HoldingsPieChart chartData={pieChartData} />
-            <PortfolioGraph holdingsJoined={holdingsJoined} />
-        </div>
+        <>
+            {contentLoading? (
+                <ContentLoading />
+            ): (
+                <div>
+                    <div>
+                        Total portfolio value: {toCurrencyString(portfolioValue)}
+                    </div>
+                    <HoldingsPieChart chartData={pieChartData} />
+                    <PortfolioGraph holdingsJoined={holdingsJoined} />
+                </div>
+            )}
+        </>
+
     );
 
 }

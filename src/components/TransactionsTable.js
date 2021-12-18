@@ -295,7 +295,7 @@ export default function TransactionsTable(props) {
                                         role="checkbox"
                                         aria-checked={isItemSelected}
                                         tabIndex={-1}
-                                        key={row.datetime}
+                                        key={row.id}
                                         selected={isItemSelected}
                                         >
                                         <TableCell padding="checkbox">
