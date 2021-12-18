@@ -122,7 +122,8 @@ export default function HoldingPriceChart({
     return (
         <div>
             {isLoading ? (
-                <p>Loading</p>
+                <>loading</>
+                // <p>Loading</p>
             ) : (
                 <div>
                     <AreaChart 

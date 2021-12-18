@@ -216,8 +216,9 @@ export default function AreaChart({
                     left={tooltipLeft + 60}
                     style={tooltipStyles}
                     >
-                        <p>{`${tooltipData[0]}`}</p>
-                        <p>{`£${tooltipData[1]}`}</p>
+                        test
+                        {/* <p>{`${tooltipData[0]}`}</p>
+                        <p>{`£${tooltipData[1]}`}</p> */}
                     </TooltipWithBounds>
                 </div>
             )}
