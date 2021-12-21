@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Orientation } from '@visx/axis';
 import { curveMonotoneX } from '@visx/curve';
 import { AnimatedAxis, AnimatedGridColumns, AnimatedGridRows } from '@visx/react-spring';
-import { AreaClosed, Bar, Line } from '@visx/shape';
+import { AreaClosed, Bar, Circle, Line } from '@visx/shape';
 import { LinearGradient } from "@visx/gradient";
 import { Group } from '@visx/group';
 import { useTooltip, useTooltipInPortal, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
@@ -24,6 +24,7 @@ const tooltipStyles = {
 
 export default function AreaChart({
     chartData,
+    circlesData,
     xScale,
     yScale,
     width,
@@ -37,7 +38,7 @@ export default function AreaChart({
     children,
     chartColor,
 }) {
-
+    console.log(circlesData);
     const {
         tooltipData,
         tooltipLeft,
@@ -164,6 +165,17 @@ export default function AreaChart({
                         fill="url(#area-gradient)"
                         curve={curveMonotoneX}
                     />
+                    {circlesData?.map((c, i) => (
+                        <Circle
+                            key={`point-${c[0]}-${i}`}
+                            className="dot"
+                            cx={xScale(getDate(c))}
+                            cy={yScale(getPrice(c))}
+                            r={7}
+                            fill='green'
+                        />
+                    ))}
+
                     <Bar
                         width={width - margin.left  - margin.right}
                         height={yMax}
@@ -216,8 +228,9 @@ export default function AreaChart({
                     left={tooltipLeft + 60}
                     style={tooltipStyles}
                     >
-                        <p>{`${tooltipData[0]}`}</p>
-                        <p>{`£${tooltipData[1]}`}</p>
+                        test
+                        {/* <p>{`${tooltipData[0]}`}</p>
+                        <p>{`£${tooltipData[1]}`}</p> */}
                     </TooltipWithBounds>
                 </div>
             )}

@@ -35,7 +35,7 @@ exports.handler = async (event, context) => {
         // Get ticker prices for the associated ticker id
         const holdingTickerId = getHoldingResp.rows[0].ticker_id;
         const getTickerPricesForHoldingQuery = `
-            SELECT * FROM ticker_prices WHERE ticker_id='${holdingTickerId} ORDER BY datetime DESC'
+            SELECT * FROM ticker_prices WHERE ticker_id='${holdingTickerId}' ORDER BY datetime ASC
         `;
         const getTickerPricesForHoldingRes = await client.query(getTickerPricesForHoldingQuery);
         console.log(getTickerPricesForHoldingRes);

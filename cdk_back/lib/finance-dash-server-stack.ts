@@ -172,6 +172,22 @@ export class FinanceDashServerStack extends Stack {
             architecture: Architecture.ARM_64,
         });
 
+        const deleteTransactionsFunction = new Function(this, 'DeleteTransactionsFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/delete-transactions'),
+            timeout: Duration.minutes(1),
+            environment: {
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
         new Rule(this, 'CreateTickerPricesCronRule', {
@@ -190,6 +206,7 @@ export class FinanceDashServerStack extends Stack {
         const getHoldingIntegration = new LambdaIntegration(getHoldingFunction);
         const createTransactionIntegration = new LambdaIntegration(createTransactionFunction);
         const getPortfolioFullIntegration = new LambdaIntegration(getPortfolioFullFunction);
+        const deleteTransactionsIntegration = new LambdaIntegration(deleteTransactionsFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -209,6 +226,9 @@ export class FinanceDashServerStack extends Stack {
 
         const transactionsApiResource = api.root.addResource('transactions');
         transactionsApiResource.addMethod('POST', createTransactionIntegration);
+
+        const txDeleteAR = transactionsApiResource.addResource('delete');
+        txDeleteAR.addMethod('POST', deleteTransactionsIntegration);
 
         const portfolioApiResource = api.root.addResource('portfolio');
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);

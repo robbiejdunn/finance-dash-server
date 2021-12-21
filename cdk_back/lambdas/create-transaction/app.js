@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
         await client.end();
 
         response.statusCode = 200;
-        response.body = "Success"
+        response.body = "Success";
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

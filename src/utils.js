@@ -23,8 +23,18 @@ export const category20Colors = [
 
 
 export function toCurrencyString(v) {
-    const parsed = parseFloat(v);
-    const asStr = Math.abs(parsed);
+    const parsed = Math.abs(parseFloat(v));
+    let asStr = '';
+    if (parsed > 1) {
+        asStr = parsed.toFixed(2); 
+    } else {
+        // find index of first non-zero / decimal value
+        const parsedStr = `${parsed}`;
+        const nzIndex = [...parsedStr].findIndex((v) => {
+            return v !== '0' && v !== '.';
+        });
+        asStr = parsed.toFixed(nzIndex + 1);
+    }
     return `£${asStr}`;
 }
 

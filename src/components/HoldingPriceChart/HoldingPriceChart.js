@@ -18,6 +18,7 @@ const getPrice = (d) => parseFloat(d[1]);
 
 export default function HoldingPriceChart({
     data,
+    circlesData,
     width = 1450,
     height = 600,
     margin = {
@@ -122,11 +123,13 @@ export default function HoldingPriceChart({
     return (
         <div>
             {isLoading ? (
-                <p>Loading</p>
+                <>loading</>
+                // <p>Loading</p>
             ) : (
                 <div>
                     <AreaChart 
                         chartData={filteredData}
+                        circlesData={circlesData}
                         width={width}
                         margin={{ ...margin, bottom: topChartBottomMargin }}
                         yMax={yMax}

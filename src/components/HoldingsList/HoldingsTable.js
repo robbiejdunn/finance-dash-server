@@ -59,6 +59,7 @@ function stableSort(array, comparator) {
 
 const headCells = [
     { id: 'logo', numeric: false, disablePadding: false, label: '', width: '25px' },
+    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol' },
     { id: 'name', numeric: false, disablePadding: false, label: 'Name' },
     { id: 'units', numeric: false, disablePadding: false, label: 'Units' },
     { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price' },
@@ -223,18 +224,6 @@ export default function HoldingsTable(props) {
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
     const rows = props.holdings;
-    // const rows = props.holdings.map(holding => {
-    //     console.log(holding)
-    //     return createData(
-    //         holding['holding_id'],
-    //         holding['units'],
-    //         holding['ticker_name'],
-    //         holding['ticker_symbol'],
-    //         holding['units'],
-    //         holding['ticker_price'],
-    //         holding['market_value'],
-    //     );
-    // });
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -312,12 +301,6 @@ export default function HoldingsTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.holding_id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
-                                    // let totalGainClass;
-                                    // if (row.totalGain < 0) {
-                                    //     totalGainClass = classes.gainLoss
-                                    // } else {
-                                    //     totalGainClass = classes.gainProfit
-                                    // }
                                     return (
                                         <TableRow
                                             hover
@@ -339,7 +322,8 @@ export default function HoldingsTable(props) {
                                         <TableCell component="th" id={labelId} scope="row">
                                         <img src={row.ticker_logo} alt="Coin logo" className={classes.tickerLogo} ></img>
                                         </TableCell>
-                                        <TableCell>{row.ticker_name} ({row.ticker_symbol})</TableCell>
+                                        <TableCell>{row.ticker_symbol}</TableCell>
+                                        <TableCell>{row.ticker_name}</TableCell>
                                         <TableCell>{row.units}</TableCell>
                                         <TableCell>{toCurrencyString(row.ticker_price)}</TableCell>
                                         <TableCell>{toGainString(row.ticker_twenty_four_change, row.ticker_price)}</TableCell>
@@ -352,7 +336,7 @@ export default function HoldingsTable(props) {
                             )}
                             {emptyRows > 0 && (
                                 <TableRow style={{ height: 53 * emptyRows }}>
-                                <TableCell colSpan={9} />
+                                <TableCell colSpan={10} />
                                 </TableRow>
                             )}
                         </TableBody>

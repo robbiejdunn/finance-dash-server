@@ -20,6 +20,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toCurrencyString, toGainString } from '../utils';
 import CreateTransactionDialog from './CreateTransactionDialog';
+import axios from 'axios';
 
 function createData(id, datetime, buySell, units, price, currentPrice, twentyFour, totalGain) {
     return { id, datetime, buySell, units, price, currentPrice, twentyFour, totalGain };
@@ -138,6 +139,22 @@ const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
     const { numSelected } = props;
 
+    const handleDeleteClicked = (e) => {
+        console.log(e);
+        console.log(props.selected);
+        if (props.selected.length > 0) {
+            const data = {
+                txIds: props.selected
+            };
+            axios.post(
+                `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions/delete`,
+                data
+            ).then(res => {
+                console.log(res);
+            });
+        }
+    }
+
     return (
         <Toolbar
             className={clsx(classes.root, {
@@ -155,7 +172,7 @@ const EnhancedTableToolbar = (props) => {
         )}
         
         {numSelected > 0 && (
-            <Tooltip title="Delete">
+            <Tooltip title="Delete" onClick={(e) => handleDeleteClicked(e)}>
                 <IconButton aria-label="delete" size="large">
                     <DeleteIcon />
                 </IconButton>
@@ -265,7 +282,11 @@ export default function TransactionsTable(props) {
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
-                <EnhancedTableToolbar numSelected={selected.length} holdingId={props.holdingId} />
+                <EnhancedTableToolbar
+                    selected={selected}
+                    numSelected={selected.length}
+                    holdingId={props.holdingId}
+                />
                 <TableContainer>
                     <Table
                         className={classes.table}
@@ -295,7 +316,7 @@ export default function TransactionsTable(props) {
                                         role="checkbox"
                                         aria-checked={isItemSelected}
                                         tabIndex={-1}
-                                        key={row.datetime}
+                                        key={row.id}
                                         selected={isItemSelected}
                                         >
                                         <TableCell padding="checkbox">
