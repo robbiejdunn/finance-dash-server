@@ -116,7 +116,7 @@ export default function HoldingView() {
             setHoldingColor(res.data.holding.color);
 
             const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
-            console.log(recentTP);
+            // console.log(recentTP);
             setCurrentPrice(recentTP.price);
             setTwentyFourHrChange(recentTP.twenty_four_hour_change);
             setMarketCap(recentTP.market_cap);

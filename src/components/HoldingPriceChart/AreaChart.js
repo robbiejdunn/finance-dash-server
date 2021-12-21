@@ -38,7 +38,6 @@ export default function AreaChart({
     children,
     chartColor,
 }) {
-    console.log(circlesData);
     const {
         tooltipData,
         tooltipLeft,
