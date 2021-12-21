@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   },
   navItemSelected: {
     // backgroundColor: theme.palette.secondary.main,
-    background: 'linear-gradient(0deg, rgba(74,57,13,1) 0%, rgba(163,128,32,1) 100%)'
+    background: 'linear-gradient(0deg, #0a093a 0%, #2421b7 100%)'
   },
   nested: {
     paddingLeft: theme.spacing(4),
