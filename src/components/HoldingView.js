@@ -91,6 +91,7 @@ export default function HoldingView() {
     const [twentyFourHrVolume, setTwentyFourHrVolume] = useState(0);
     const [marketCap, setMarketCap] = useState(0);
     const [holdingColor, setHoldingColor] = useState('#75daad');
+    const [circlesData, setCirclesData] = useState([]);
 
     const [contentLoading, setContentLoading] = useState(true);
 
@@ -108,6 +109,9 @@ export default function HoldingView() {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
+            setCirclesData(res.data.transactions.map((t) => {
+                return [new Date(t.datetime), parseFloat(t.price) / parseFloat(t.units)]
+            }))
             console.log(`Setting holding color to ${res.data.holding.color}`)
             setHoldingColor(res.data.holding.color);
 
@@ -212,7 +216,11 @@ export default function HoldingView() {
                                 twentyFour={twentyFourHrChange}
                                 holdingId={holdingId}
                             ></TransactionsTable>
-                            <HoldingPriceChart data={tickerPrices} chartColor={holdingColor} />
+                            <HoldingPriceChart 
+                                data={tickerPrices}
+                                circlesData={circlesData}
+                                chartColor={holdingColor}
+                            />
                         </div>
                     </div>
                 </div>
