@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import makeStyles from '@mui/styles/makeStyles';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Typography from '@mui/material/Typography';
-import { Divider } from '@mui/material';
+import { Button, Divider } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import TransactionsTable from './TransactionsTable';
 import { toCurrencyString, toGainString } from '../utils';
 import HoldingPriceChart from './HoldingPriceChart/HoldingPriceChart';
 import ContentLoading from './ContentLoading';
+import { CustomSnackBar } from './CustomSnackBar';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -94,6 +95,8 @@ export default function HoldingView() {
     const [circlesData, setCirclesData] = useState([]);
 
     const [contentLoading, setContentLoading] = useState(true);
+
+    const snackbarRef = useRef();
 
     useEffect(() => {
         // console.log(`Content loading ${contentLoading}`)
@@ -215,12 +218,16 @@ export default function HoldingView() {
                                 currentPrice={currentPrice}
                                 twentyFour={twentyFourHrChange}
                                 holdingId={holdingId}
+                                snackbarRef={snackbarRef}
+                                // openSnackFunc={snackbarRef.current.handleClick()}
                             ></TransactionsTable>
                             <HoldingPriceChart 
                                 data={tickerPrices}
                                 circlesData={circlesData}
                                 chartColor={holdingColor}
-                            />
+                            ></HoldingPriceChart>
+                            <Button onClick={() => snackbarRef.current.handleClick()}>Click me</Button>
+                            <CustomSnackBar ref={snackbarRef} />
                         </div>
                     </div>
                 </div>

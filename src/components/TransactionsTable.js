@@ -179,7 +179,10 @@ const EnhancedTableToolbar = (props) => {
             </Tooltip>
         )}
 
-        <CreateTransactionDialog holdingId={props.holdingId}></CreateTransactionDialog>
+        <CreateTransactionDialog
+            holdingId={props.holdingId}
+            snackbarRef={props.snackbarRef}
+        ></CreateTransactionDialog>
     </Toolbar>
     );
 };
@@ -286,6 +289,7 @@ export default function TransactionsTable(props) {
                     selected={selected}
                     numSelected={selected.length}
                     holdingId={props.holdingId}
+                    snackbarRef={props.snackbarRef}
                 />
                 <TableContainer>
                     <Table
