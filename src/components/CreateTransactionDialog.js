@@ -53,9 +53,10 @@ export default function CreateTransactionDialog(props) {
             data
         ).then(res => {
             console.log(res);
+            props.setTransactions([...props.transactions, res.data])
+            setOpen(false);
+            props.snackbarRef.current.handleClick();
         });
-        setOpen(false);
-        props.snackbarRef.current.handleClick();
         // props.
     }
 

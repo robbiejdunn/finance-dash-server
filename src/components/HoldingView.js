@@ -96,6 +96,9 @@ export default function HoldingView() {
 
     const [contentLoading, setContentLoading] = useState(true);
 
+    // refresh content e.g. after a new transaction is added
+    const [refreshRequired, setRefreshRequired] = useState(false);
+
     const snackbarRef = useRef();
 
     useEffect(() => {
@@ -219,14 +222,13 @@ export default function HoldingView() {
                                 twentyFour={twentyFourHrChange}
                                 holdingId={holdingId}
                                 snackbarRef={snackbarRef}
-                                // openSnackFunc={snackbarRef.current.handleClick()}
+                                setTransactions={setTransactions}
                             ></TransactionsTable>
                             <HoldingPriceChart 
                                 data={tickerPrices}
                                 circlesData={circlesData}
                                 chartColor={holdingColor}
                             ></HoldingPriceChart>
-                            <Button onClick={() => snackbarRef.current.handleClick()}>Click me</Button>
                             <CustomSnackBar ref={snackbarRef} />
                         </div>
                     </div>
