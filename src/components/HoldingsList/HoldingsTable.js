@@ -21,6 +21,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
+import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
 
 
 function createData(id, name, symbol, units, currentPrice, marketValue) {
@@ -324,12 +325,22 @@ export default function HoldingsTable(props) {
                                         </TableCell>
                                         <TableCell>{row.ticker_symbol}</TableCell>
                                         <TableCell>{row.ticker_name}</TableCell>
-                                        <TableCell>{row.units}</TableCell>
+                                        <TableCell>{getUnits(row.transactions)}</TableCell>
                                         <TableCell>{toCurrencyString(row.ticker_price)}</TableCell>
                                         <TableCell>{toGainString(row.ticker_twenty_four_change, row.ticker_price)}</TableCell>
-                                        <TableCell>{toCurrencyString(row.market_value)}</TableCell>
-                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
-                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
+                                        <TableCell>{toCurrencyString(getUnits(row.transactions) * row.ticker_price)}</TableCell>
+                                        <TableCell>
+                                            {toGainString(
+                                                    parseFloat(row.ticker_twenty_four_change),
+                                                    getPurchasePrice(row.transactions)
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {toGainString(
+                                                    (100 * getMVTotalGain(row.transactions, row.ticker_price) / getPurchasePrice(row.transactions)),
+                                                    getPurchasePrice(row.transactions)
+                                            )}
+                                        </TableCell>
                                         </TableRow>
                                     );
                                 }
