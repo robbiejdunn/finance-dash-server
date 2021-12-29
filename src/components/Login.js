@@ -10,6 +10,13 @@ export default function Login() {
     const onSubmit = (event) => {
         event.preventDefault();
 
+        authenticate(email, password)
+            .then((data) => {
+                console.log("Logged in!", data);
+            })
+            .catch((err) => {
+                console.error("Failed to log in", err);
+            });
     };
 
     return (

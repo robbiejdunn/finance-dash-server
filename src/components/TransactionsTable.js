@@ -140,8 +140,6 @@ const EnhancedTableToolbar = (props) => {
     const { numSelected } = props;
 
     const handleDeleteClicked = (e) => {
-        console.log(e);
-        console.log(props.selected);
         if (props.selected.length > 0) {
             const data = {
                 txIds: props.selected
@@ -151,6 +149,10 @@ const EnhancedTableToolbar = (props) => {
                 data
             ).then(res => {
                 console.log(res);
+                props.setTransactions(
+                    props.transactions.filter((t) => !props.selected.includes(t.tx_id))
+                );
+                props.snackbarRef.current.handleClick();
             });
         }
     }
