@@ -179,7 +179,12 @@ const EnhancedTableToolbar = (props) => {
             </Tooltip>
         )}
 
-        <CreateTransactionDialog holdingId={props.holdingId}></CreateTransactionDialog>
+        <CreateTransactionDialog
+            holdingId={props.holdingId}
+            snackbarRef={props.snackbarRef}
+            setTransactions={props.setTransactions}
+            transactions={props.transactions}
+        ></CreateTransactionDialog>
     </Toolbar>
     );
 };
@@ -286,6 +291,9 @@ export default function TransactionsTable(props) {
                     selected={selected}
                     numSelected={selected.length}
                     holdingId={props.holdingId}
+                    snackbarRef={props.snackbarRef}
+                    setTransactions={props.setTransactions}
+                    transactions={props.transactions}
                 />
                 <TableContainer>
                     <Table
@@ -333,11 +341,7 @@ export default function TransactionsTable(props) {
                                         <TableCell align="right">{toCurrencyString(row.price)}</TableCell>
                                         <TableCell align="right">{toCurrencyString(row.currentPrice)}</TableCell>
                                         <TableCell align="right">{toGainString(row.twentyFour, row.price)}</TableCell>
-                                        <TableCell align="right">{toGainString((100 * row.totalGain / row.price), row.price)}
-                                            
-                                            
-                                            {/* {`${toCurrencyString(row.totalGain)} (${(100 * row.totalGain / row.price).toFixed(2)}%)`} */}
-                                            </TableCell>
+                                        <TableCell align="right">{toGainString((100 * row.totalGain / row.price), row.price)}</TableCell>
                                         </TableRow>
                                     );
                                 }

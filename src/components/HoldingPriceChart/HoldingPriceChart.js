@@ -38,7 +38,6 @@ export default function HoldingPriceChart({
     chartColor = '#75daad',
 }) {
     const brushRef = useRef(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [filteredData, setFilteredData] = useState(data);
 
     const onBrushChange = (domain) => {
@@ -101,19 +100,29 @@ export default function HoldingPriceChart({
     const initialBrushPosition = useMemo(
         () => {
             if(data.length > 0) {
-                setIsLoading(false);
-                if(data.length > 365) {
-                    setFilteredData(data.slice(data.length - 365, data.length - 1))
-                    return {
-                        start: { x: brushDateScale(getDate(data[data.length - 365])) },
-                        end: { x: brushDateScale(getDate(data[data.length - 1])) }
-                    }
-                } else {
-                    setFilteredData(data)
+                const startDate = new Date(data[0][0]);
+                const today = new Date();
+                const daysTotal = parseInt((today - startDate) / (1000 * 3600 * 24));
+                if (daysTotal < 365) {
+                    setFilteredData(data);
                     return {
                         start: { x: brushDateScale(getDate(data[0])) },
                         end: { x: brushDateScale(getDate(data[data.length - 1])) },
-                    }
+                    };
+                } else {
+                    const filtered = data.filter((d) => {
+                        return (
+                            parseInt((today - new Date(d[0])) / (1000 * 3600 * 24))
+                            < 365
+                        );
+                    });
+                    setFilteredData(filtered);
+                    return {
+                        start: { 
+                            x: brushDateScale(getDate(data[data.length - filtered.length]))
+                        },
+                        end: { x: brushDateScale(getDate(data[data.length - 1])) },
+                    };
                 }
             }
         },
@@ -122,61 +131,54 @@ export default function HoldingPriceChart({
 
     return (
         <div>
-            {isLoading ? (
-                <>loading</>
-                // <p>Loading</p>
-            ) : (
-                <div>
-                    <AreaChart 
-                        chartData={filteredData}
-                        circlesData={circlesData}
-                        width={width}
-                        margin={{ ...margin, bottom: topChartBottomMargin }}
-                        yMax={yMax}
-                        xScale={dateScale}
-                        yScale={priceScale}
-                        hideGrid
-                        chartColor={chartColor}  
-                    />
-                    <AreaChart
-                        hideLeftAxis
-                        chartData={data}
-                        width={width}
-                        yMax={yBrushMax}
-                        xScale={brushDateScale}
-                        yScale={brushPriceScale}
-                        margin={brushMargin}
-                        top={topChartHeight + topChartBottomMargin + margin.top}
-                        hideGrid
-                        chartColor={chartColor}  
-                    >
-                        <PatternLines
-                            id={PATTERN_ID}
-                            height={8}
-                            width={8}
-                            stroke={accentColor}
-                            strokeWidth={1}
-                            orientation={['diagonal']}
-                        />
-                        <Brush
-                            xScale={brushDateScale}
-                            yScale={brushPriceScale}
-                            width={xBrushMax}
-                            height={yBrushMax}
-                            margin={brushMargin}
-                            handleSize={8}
-                            innerRef={brushRef}
-                            resizeTriggerAreas={['left', 'right']}
-                            brushDirection="horizontal"
-                            initialBrushPosition={initialBrushPosition}
-                            onChange={onBrushChange}
-                            onClick={() => setFilteredData(data)}
-                            selectedBoxStyle={selectedBrushStyle}
-                            useWindowMoveEvents
-                        />
-                    </AreaChart>
-                </div>
-            )}
+            <AreaChart
+                chartData={filteredData}
+                circlesData={circlesData}
+                width={width}
+                margin={{ ...margin, bottom: topChartBottomMargin }}
+                yMax={yMax}
+                xScale={dateScale}
+                yScale={priceScale}
+                hideGrid
+                chartColor={chartColor}
+            />
+            <AreaChart
+                hideLeftAxis
+                chartData={data}
+                width={width}
+                yMax={yBrushMax}
+                xScale={brushDateScale}
+                yScale={brushPriceScale}
+                margin={brushMargin}
+                top={topChartHeight + topChartBottomMargin + margin.top}
+                hideGrid
+                chartColor={chartColor}
+            >
+                <PatternLines
+                    id={PATTERN_ID}
+                    height={8}
+                    width={8}
+                    stroke={accentColor}
+                    strokeWidth={1}
+                    orientation={['diagonal']}
+                />
+                <Brush
+                    xScale={brushDateScale}
+                    yScale={brushPriceScale}
+                    width={xBrushMax}
+                    height={yBrushMax}
+                    margin={brushMargin}
+                    handleSize={8}
+                    innerRef={brushRef}
+                    resizeTriggerAreas={['left', 'right']}
+                    brushDirection="horizontal"
+                    initialBrushPosition={initialBrushPosition}
+                    onChange={onBrushChange}
+                    onClick={() => setFilteredData(data)}
+                    selectedBoxStyle={selectedBrushStyle}
+                    useWindowMoveEvents
+                />
+            </AreaChart>
         </div>
     )
 }

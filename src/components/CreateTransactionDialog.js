@@ -37,6 +37,10 @@ export default function CreateTransactionDialog(props) {
     };
 
     const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleSubmit = () => {
         const data = {
             holdingId: props.holdingId,
             datetime: date,
@@ -49,9 +53,12 @@ export default function CreateTransactionDialog(props) {
             data
         ).then(res => {
             console.log(res);
+            props.setTransactions([...props.transactions, res.data])
+            setOpen(false);
+            props.snackbarRef.current.handleClick();
         });
-        setOpen(false);
-    };
+        // props.
+    }
 
   return (
       <div>
@@ -108,10 +115,18 @@ export default function CreateTransactionDialog(props) {
                   </FormControl>
               </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="primary">
+            <Button
+                onClick={handleClose}
+                color="primary"
+                variant="contained"
+            >
               Cancel
             </Button>
-            <Button onClick={handleClose} color="primary">
+            <Button
+                onClick={handleSubmit}
+                color="primary"
+                variant="contained"
+            >
               Add
             </Button>
           </DialogActions>

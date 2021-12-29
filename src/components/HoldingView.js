@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import makeStyles from '@mui/styles/makeStyles';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -9,6 +9,8 @@ import TransactionsTable from './TransactionsTable';
 import { toCurrencyString, toGainString } from '../utils';
 import HoldingPriceChart from './HoldingPriceChart/HoldingPriceChart';
 import ContentLoading from './ContentLoading';
+import { CustomSnackBar } from './CustomSnackBar';
+import { getUnits, getPurchasePrice, getMVTotalGain } from '../utils/holding'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -82,7 +84,6 @@ export default function HoldingView() {
 
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
-    const [units, setUnits] = useState(0);
     const [currentPrice, setCurrentPrice] = useState(0);
     const [imageUrl, setImageUrl] = useState('');
     const [tickerPrices, setTickerPrices] = useState([]);
@@ -95,6 +96,8 @@ export default function HoldingView() {
 
     const [contentLoading, setContentLoading] = useState(true);
 
+    const snackbarRef = useRef();
+
     useEffect(() => {
         // console.log(`Content loading ${contentLoading}`)
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
@@ -103,7 +106,6 @@ export default function HoldingView() {
             console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
-            setUnits(res.data.holding.units);
             setImageUrl(res.data.holding.image_url);
             setTickerPrices(res.data.tickerPrices.map((p) => {
                 return [new Date(p.datetime), parseFloat(p.price)]
@@ -116,7 +118,7 @@ export default function HoldingView() {
             setHoldingColor(res.data.holding.color);
 
             const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
-            console.log(recentTP);
+            // console.log(recentTP);
             setCurrentPrice(recentTP.price);
             setTwentyFourHrChange(recentTP.twenty_four_hour_change);
             setMarketCap(recentTP.market_cap);
@@ -186,28 +188,48 @@ export default function HoldingView() {
                                         <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
                                             <Typography variant='h6'>Units</Typography>
                                         </div>
-                                        <div style={{ flex: 1 }}>
-                                            <Typography variant='h6'>{units}</Typography>
+                                        <div style={{ flex: 2 }}>
+                                            <Typography variant='h6'>{getUnits(transactions)}</Typography>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', flex: 1 }}>
                                         <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
                                             <Typography variant='h6'>Market value</Typography>
                                         </div>
-                                        <div style={{ flex: 1 }}>
+                                        <div style={{ flex: 2 }}>
                                             <Typography variant='h6'>
-                                                {toCurrencyString(units * currentPrice)}
+                                                {toCurrencyString(getUnits(transactions) * currentPrice)}
+                                            </Typography>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flex: 1 }}>
+                                        <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
+                                            <Typography variant='h6'>Market value 24h gain</Typography>
+                                        </div>
+                                        <div style={{ flex: 2 }}>
+                                            <Typography variant='h6'>
+                                                {toGainString(
+                                                    parseFloat(twentyFourHrChange),
+                                                    getPurchasePrice(transactions)
+                                                )}
+                                            </Typography>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flex: 1 }}>
+                                        <div style={{ flex: 1 }} className={classes.coinPricesLabel}>
+                                            <Typography variant='h6'>Market value total gain</Typography>
+                                        </div>
+                                        <div style={{ flex: 2 }}>
+                                            <Typography variant='h6'>
+                                                {toGainString(
+                                                    (100 * getMVTotalGain(transactions, currentPrice) / getPurchasePrice(transactions)),
+                                                    getPurchasePrice(transactions)
+                                                )}
                                             </Typography>
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ flex: 1, display: 'flex' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <Typography variant='body1'>Price</Typography>
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <Typography variant='body1'>{toCurrencyString(currentPrice)}</Typography>
-                                    </div>
                                 </div>
                             </div>
                             <TransactionsTable 
@@ -215,12 +237,15 @@ export default function HoldingView() {
                                 currentPrice={currentPrice}
                                 twentyFour={twentyFourHrChange}
                                 holdingId={holdingId}
+                                snackbarRef={snackbarRef}
+                                setTransactions={setTransactions}
                             ></TransactionsTable>
                             <HoldingPriceChart 
                                 data={tickerPrices}
                                 circlesData={circlesData}
                                 chartColor={holdingColor}
-                            />
+                            ></HoldingPriceChart>
+                            <CustomSnackBar ref={snackbarRef} />
                         </div>
                     </div>
                 </div>

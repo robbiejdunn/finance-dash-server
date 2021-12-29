@@ -16,6 +16,8 @@ exports.handler = async (event, context) => {
         const client = new Client();
         await client.connect();
 
+        const txId = `${uuidv4()}`
+
         // Insert transaction row
         const insertTransactionQuery = `
             INSERT INTO transactions (
@@ -26,7 +28,7 @@ exports.handler = async (event, context) => {
                 units,
                 price
             ) VALUES (
-                '${uuidv4()}',
+                '${txId}',
                 '${requestData.holdingId}',
                 '${new Date(requestData.datetime).toISOString()}',
                 '${requestData.buySell}',
@@ -54,8 +56,17 @@ exports.handler = async (event, context) => {
 
         await client.end();
 
+        const responseData = {
+            buy_sell: `${requestData.buySell}`,
+            datetime: new Date(requestData.datetime).toISOString(),
+            holding_id: `${requestData.holdingId}`,
+            price: `${requestData.price}`,
+            tx_id: `${txId}`,
+            units: `${requestData.units}`,
+        }
+
         response.statusCode = 200;
-        response.body = "Success";
+        response.body = JSON.stringify(responseData);
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

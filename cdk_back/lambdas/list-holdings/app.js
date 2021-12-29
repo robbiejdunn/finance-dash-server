@@ -18,14 +18,31 @@ exports.handler = async (event, context) => {
         const listHoldingsResp = await client.query(listHoldingsQuery);
         console.log(listHoldingsResp);
 
+        const holdingIds = listHoldingsResp.rows.map((h) => h.holding_id);
+        const getRelevantTxQuery = `
+            SELECT
+                tx_id,
+                holding_id,
+                datetime,
+                buy_sell,
+                units,
+                price
+            FROM transactions
+            WHERE holding_id IN ('${holdingIds.join('\',\'')}')
+        `;
+        console.log(`Get relevant transactions query: ${getRelevantTxQuery}`);
+        const getRelevantTxResp = await client.query(getRelevantTxQuery);
+        console.log(getRelevantTxResp);
+
         await client.end();
 
         response.statusCode = 200;
         response.body = JSON.stringify({
             items: listHoldingsResp.rows.map((h) => {
                 return {
-                     ...h,
-                     holding_twenty_four_hour_change: (h.ticker_twenty_four_hour_change / 100) * h.ticker_price
+                    ...h,
+                    holding_twenty_four_hour_change: (h.ticker_twenty_four_hour_change / 100) * h.ticker_price,
+                    transactions: getRelevantTxResp.rows.filter((t) => t.holding_id === h.holding_id)
                 }
             })
         });

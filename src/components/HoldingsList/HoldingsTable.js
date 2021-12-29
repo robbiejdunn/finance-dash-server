@@ -21,6 +21,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
+import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
 
 
 function createData(id, name, symbol, units, currentPrice, marketValue) {
@@ -58,15 +59,15 @@ function stableSort(array, comparator) {
 
 
 const headCells = [
-    { id: 'logo', numeric: false, disablePadding: false, label: '', width: '25px' },
-    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol' },
-    { id: 'name', numeric: false, disablePadding: false, label: 'Name' },
-    { id: 'units', numeric: false, disablePadding: false, label: 'Units' },
-    { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price' },
-    { id: 'ticker_twenty_four_change', numeric: false, disablePadding: false, label: 'Price 24h' },
-    { id: 'market_value', numeric: false, disablePadding: false, label: 'Market value'},
-    { id: 'market_value_twenty_four_change', numeric: false, disablePadding: false, label: 'Gain 24h'},
-    { id: 'market_value_total_change', numeric: false, disablePadding: false, label: 'Gain total'},
+    { id: 'logo', numeric: false, disablePadding: false, label: '', width: '5%' },
+    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol', width: '5%' },
+    { id: 'name', numeric: false, disablePadding: false, label: 'Name', width: '15%' },
+    { id: 'units', numeric: false, disablePadding: false, label: 'Units', width: '12.5%' },
+    { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price', width: '12.5%' },
+    { id: 'ticker_twenty_four_change', numeric: false, disablePadding: false, label: 'Price 24h', width: '12.5%' },
+    { id: 'market_value', numeric: false, disablePadding: false, label: 'Market value', width: '12.5%' },
+    { id: 'market_value_twenty_four_change', numeric: false, disablePadding: false, label: 'Gain 24h', width: '12.5%' },
+    { id: 'market_value_total_change', numeric: false, disablePadding: false, label: 'Gain total', width: '12.5%' },
 ];
 
 
@@ -324,12 +325,22 @@ export default function HoldingsTable(props) {
                                         </TableCell>
                                         <TableCell>{row.ticker_symbol}</TableCell>
                                         <TableCell>{row.ticker_name}</TableCell>
-                                        <TableCell>{row.units}</TableCell>
+                                        <TableCell>{getUnits(row.transactions)}</TableCell>
                                         <TableCell>{toCurrencyString(row.ticker_price)}</TableCell>
                                         <TableCell>{toGainString(row.ticker_twenty_four_change, row.ticker_price)}</TableCell>
-                                        <TableCell>{toCurrencyString(row.market_value)}</TableCell>
-                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
-                                        <TableCell>{toGainString(row.ticker_twenty_four_change, row.market_value)}</TableCell>
+                                        <TableCell>{toCurrencyString(getUnits(row.transactions) * row.ticker_price)}</TableCell>
+                                        <TableCell>
+                                            {toGainString(
+                                                    parseFloat(row.ticker_twenty_four_change),
+                                                    getPurchasePrice(row.transactions)
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {toGainString(
+                                                    (100 * getMVTotalGain(row.transactions, row.ticker_price) / getPurchasePrice(row.transactions)),
+                                                    getPurchasePrice(row.transactions)
+                                            )}
+                                        </TableCell>
                                         </TableRow>
                                     );
                                 }
