@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten } from '@mui/material/styles';
@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
 import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
+import { CustomSnackBar } from '../CustomSnackBar';
 
 
 function descendingComparator(a, b, orderBy) {
@@ -146,6 +147,7 @@ const useToolbarStyles = makeStyles((theme) => ({
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
     const { numSelected } = props;
+    const snackbarRef = useRef();
 
     return (
         <Toolbar
@@ -170,7 +172,10 @@ const EnhancedTableToolbar = (props) => {
                 </IconButton>
             </Tooltip>
         )}
-        <CreateHoldingDialog />
+        <CreateHoldingDialog
+            snackbarRef={snackbarRef}
+        />
+        <CustomSnackBar ref={snackbarRef} />
     </Toolbar>
     );
 };

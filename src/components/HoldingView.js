@@ -107,7 +107,6 @@ export default function HoldingView() {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
         axios.get(endpoint)
         .then(res => {
-            console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
             setImageUrl(res.data.holding.image_url);
@@ -123,7 +122,6 @@ export default function HoldingView() {
             setMarketCap(recentTP.market_cap);
             setTwentyFourHrVolume(recentTP.volume);
             setContentLoading(false);
-            console.log("Content loaded")
         });
     }, [holdingId]);
 

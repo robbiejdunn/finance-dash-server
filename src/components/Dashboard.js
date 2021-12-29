@@ -15,7 +15,6 @@ export default function Dashboard(props) {
     useEffect(() => {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio`;
         axios.get(endpoint).then(res => {
-            console.log(res);
             let holdingsDict = {};
             
             // Maps holdings to their chart color
@@ -30,7 +29,6 @@ export default function Dashboard(props) {
                 }
                 return null;
             });
-            console.log(holdingsDict);
 
             // Join transactions to holdings
             res.data.transactions.map((transaction) => {
@@ -43,7 +41,6 @@ export default function Dashboard(props) {
                 }
                 return null;
             });
-            console.log(holdingsDict);
             
             // Join ticker prices to tickers
             let tickerPricesDict = {};
@@ -55,7 +52,6 @@ export default function Dashboard(props) {
                 }
                 return null;
             });
-            console.log(tickerPricesDict);
             Object.entries(holdingsDict).map(([key, val]) => {
                 holdingsDict[key].t_prices = tickerPricesDict[val.ticker_id];
                 return null;

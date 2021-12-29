@@ -104,12 +104,11 @@ export default function CreateHoldingDialog(props) {
             {
                 timeout: 10000
             }
-        )
-        .then(res => {
-            setAddLoading(false);   
+        ).then(res => {
+            setAddLoading(false);
             setAddSuccess(true);
-        })
-        .catch((err) => {
+            props.snackbarRef.current.showSnackbar("success", "Holding added");
+        }).catch((err) => {
             console.log(err);
         });
         // setAddLoading(false);

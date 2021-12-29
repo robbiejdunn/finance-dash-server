@@ -152,7 +152,7 @@ const EnhancedTableToolbar = (props) => {
                 props.setTransactions(
                     props.transactions.filter((t) => !props.selected.includes(t.tx_id))
                 );
-                props.snackbarRef.current.show("success", "Transaction deleted");
+                props.snackbarRef.current.showSnackbar("success", "Transaction deleted");
                 // reset selected
                 props.setSelected([]);
             });

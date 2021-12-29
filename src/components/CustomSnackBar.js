@@ -12,18 +12,12 @@ export const CustomSnackBar = React.forwardRef(function CustomSnackBar(props, re
     const [message, setMessage] = React.useState("");
 
     React.useImperativeHandle(ref, () => ({
-        show(s, m) {
+        showSnackbar(s, m) {
             setSeverity(s);
             setMessage(m);
             setOpen(true);
         }
-    }))
-
-    const show = (s, m) => {
-        setSeverity(s);
-        setMessage(m);
-        setOpen(true);
-    };
+    }));
   
     const handleClose = (event, reason) => {
       if (reason === 'clickaway') {
@@ -37,7 +31,6 @@ export const CustomSnackBar = React.forwardRef(function CustomSnackBar(props, re
             open={open}
             autoHideDuration={6000}
             onClose={handleClose}
-            openFunction={show}
         >
             <Alert 
                 onClose={handleClose}
