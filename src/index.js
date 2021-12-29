@@ -5,6 +5,8 @@ import ClippedDrawer from './components/ClippedDrawer';
 import reportWebVitals from './reportWebVitals';
 import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material';
 
+import Login from './components/Login';
+
 const theme = createTheme({
     palette: {
         mode: 'dark',
@@ -21,7 +23,8 @@ ReactDOM.render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ClippedDrawer />
+        {/* <ClippedDrawer /> */}
+        <Login />
       </ThemeProvider>
     </StyledEngineProvider>
   </React.StrictMode>,

@@ -24,11 +24,6 @@ import CreateHoldingDialog from './CreateHoldingDialog';
 import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
 
 
-function createData(id, name, symbol, units, currentPrice, marketValue) {
-    return { id, name, symbol, units, currentPrice, marketValue };
-}
-
-
 function descendingComparator(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
         return -1;

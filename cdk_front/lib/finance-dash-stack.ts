@@ -4,6 +4,7 @@ import { App, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 import { Distribution } from '@aws-cdk/aws-cloudfront';
 import { S3Origin } from '@aws-cdk/aws-cloudfront-origins';
 import { RetentionDays } from '@aws-cdk/aws-logs';
+import * as cog from '@aws-cdk/aws-cognito';
 
 export class FinanceDashStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -24,6 +25,36 @@ export class FinanceDashStack extends Stack {
             destinationBucket: siteBucket,
             distribution,
             logRetention: RetentionDays.ONE_WEEK,
+        });
+
+        const userPool = new cog.UserPool(this, 'UserPool', {
+            accountRecovery: cog.AccountRecovery.EMAIL_ONLY,
+            deviceTracking: {
+                challengeRequiredOnNewDevice: false,
+                deviceOnlyRememberedOnUserPrompt: false,
+            },
+            enableSmsRole: false,
+        });
+
+        const userPoolClient = userPool.addClient('UserPoolClient', {
+            oAuth: {
+                flows: {
+                    implicitCodeGrant: true,
+                },
+                callbackUrls: [
+                    `https://${distribution.domainName}/home`
+                ]
+            },
+        });
+
+        const domain = userPool.addDomain('UserPoolDomain', {
+            cognitoDomain: {
+                domainPrefix: 'finance-dash-server'
+            }
+        });
+
+        const signInUrl = domain.signInUrl(userPoolClient, {
+            redirectUri: `https://${distribution.domainName}/home`
         });
     }
 }
