@@ -152,7 +152,9 @@ const EnhancedTableToolbar = (props) => {
                 props.setTransactions(
                     props.transactions.filter((t) => !props.selected.includes(t.tx_id))
                 );
-                props.snackbarRef.current.handleClick();
+                props.snackbarRef.current.show("success", "Transaction deleted");
+                // reset selected
+                props.setSelected([]);
             });
         }
     }
@@ -291,6 +293,7 @@ export default function TransactionsTable(props) {
             <Paper className={classes.paper}>
                 <EnhancedTableToolbar
                     selected={selected}
+                    setSelected={setSelected}
                     numSelected={selected.length}
                     holdingId={props.holdingId}
                     snackbarRef={props.snackbarRef}

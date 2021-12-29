@@ -55,7 +55,7 @@ export default function CreateTransactionDialog(props) {
             console.log(res);
             props.setTransactions([...props.transactions, res.data])
             setOpen(false);
-            props.snackbarRef.current.handleClick();
+            props.snackbarRef.current.show("success", "Transaction added");
         });
         // props.
     }

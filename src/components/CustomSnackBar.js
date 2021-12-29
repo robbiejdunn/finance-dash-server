@@ -8,15 +8,21 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 
 export const CustomSnackBar = React.forwardRef(function CustomSnackBar(props, ref) {
     const [open, setOpen] = React.useState(false);
+    const [severity, setSeverity] = React.useState("success");
+    const [message, setMessage] = React.useState("");
 
     React.useImperativeHandle(ref, () => ({
-        handleClick() {
+        show(s, m) {
+            setSeverity(s);
+            setMessage(m);
             setOpen(true);
         }
     }))
 
-    const handleClick = () => {
-      setOpen(true);
+    const show = (s, m) => {
+        setSeverity(s);
+        setMessage(m);
+        setOpen(true);
     };
   
     const handleClose = (event, reason) => {
@@ -27,19 +33,19 @@ export const CustomSnackBar = React.forwardRef(function CustomSnackBar(props, re
     };
   
     return (
-      <Snackbar
-          open={open}
-          autoHideDuration={6000}
-          onClose={handleClose}
-          openFunction={handleClick}
-      >
-          <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-              Transaction added successfully
-          </Alert>
-      </Snackbar>
+        <Snackbar
+            open={open}
+            autoHideDuration={6000}
+            onClose={handleClose}
+            openFunction={show}
+        >
+            <Alert 
+                onClose={handleClose}
+                severity={severity}
+                sx={{ width: '100%' }}
+            >
+                {message}
+            </Alert>
+        </Snackbar>
     );
 });
-
-// export default function CustomSnackBar() {
-
-// }
