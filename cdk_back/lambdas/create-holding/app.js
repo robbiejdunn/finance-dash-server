@@ -85,14 +85,14 @@ exports.handler = async (event, context) => {
         console.log(`Ticker query: ${createTickerQuery}`);
         const createTickerResp = await client.query(createTickerQuery);
         console.log(createTickerResp);
-
+        const holdingId = uuidv4();
         const createHoldingQuery = `INSERT INTO holdings (
             holding_id,
             units,
             ticker_id,
             color)
         VALUES (
-            '${uuidv4()}',
+            '${holdingId}',
             '0',
             '${tickerId}',
             '${catTwentyColors[Math.floor(Math.random() * catTwentyColors.length)]}')
@@ -200,10 +200,20 @@ exports.handler = async (event, context) => {
         } finally {
             await fsp.unlink(tmpFileName);
             console.log(`Deleted file ${tmpFileName} successfully`);
-        } 
+        }
 
+        const responseData = {
+            holding_id: `${holdingId}`,
+            ticker_last_updated: `${dateStr}`,
+            ticker_logo: `${coinDataFetch['image']['large']}`,
+            ticker_name: `${coinDataFetch['name']}`,
+            ticker_price: `${tData[pickedCryptoId]['gbp']}`,
+            ticker_symbol: `${coinDataFetch['symbol'].toUpperCase()}`,
+            ticker_twenty_four_change: `${tData[pickedCryptoId]['gbp_24h_change']}`,
+            transactions: [],
+        };
         response.statusCode = 200;
-        response.body = "Success";
+        response.body = JSON.stringify(responseData);
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

@@ -105,13 +105,15 @@ export default function CreateHoldingDialog(props) {
                 timeout: 10000
             }
         ).then(res => {
+            props.setHoldings([...props.holdings, res.data])
             setAddLoading(false);
             setAddSuccess(true);
+            setOpen(false);
             props.snackbarRef.current.showSnackbar("success", "Holding added");
+            setAddSuccess(false);
         }).catch((err) => {
             console.log(err);
         });
-        // setAddLoading(false);
     };
 
     const handleSearchTextUpdated = (text) => {
@@ -162,6 +164,7 @@ export default function CreateHoldingDialog(props) {
                         value={searchText}
                         onChange={(e) => {handleSearchTextUpdated(e.target.value)}}
                         className={classes.searchField}
+                        autoComplete="off"
                     />
                     <div className={classes.coinOptionsContainer}>
                         {pageCoins.map((coin) => (
@@ -203,13 +206,17 @@ export default function CreateHoldingDialog(props) {
                     />
                 </DialogContent>
             <DialogActions>
-            <Button onClick={handleClose} color="primary">
+            <Button
+                onClick={handleClose}
+                color="primary"
+                variant="contained"
+            >
                 Cancel
             </Button>
             <Button
                 variant="contained"
                 sx={buttonSx}
-                disabled={addLoading}
+                // disabled={addLoading}
                 onClick={handleAdd}
                 color="primary"
             >

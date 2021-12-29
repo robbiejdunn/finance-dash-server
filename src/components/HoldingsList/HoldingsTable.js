@@ -23,6 +23,7 @@ import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
 import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
 import { CustomSnackBar } from '../CustomSnackBar';
+import axios from 'axios';
 
 
 function descendingComparator(a, b, orderBy) {
@@ -162,19 +163,24 @@ const EnhancedTableToolbar = (props) => {
             const data = {
                 holdingIds: selected
             };
-            setSelected([]);
-            // axios.post(
-            //     `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions/delete`,
-            //     data
-            // ).then(res => {
-            //     console.log(res);
-            //     props.setTransactions(
-            //         props.transactions.filter((t) => !props.selected.includes(t.tx_id))
-            //     );
-            //     props.snackbarRef.current.showSnackbar("success", "Transaction deleted");
-            //     // reset selected
-            //     props.setSelected([]);
-            // });
+            axios.post(
+                `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/delete`,
+                data
+            ).then(res => {
+                console.log(res);
+                setHoldings(
+                    holdings.filter((h) => !selected.includes(h.holding_id))
+                );
+                let snackBarMsg;
+                if (numSelected > 1) {
+                    snackBarMsg = `${numSelected} holdings deleted successfully!`;
+                } else {
+                    snackBarMsg = "Holding deleted successfully!"
+                }
+                snackbarRef.current.showSnackbar("success", snackBarMsg);
+                // reset selected
+                setSelected([]);
+            });
         }
     }
 
@@ -203,6 +209,8 @@ const EnhancedTableToolbar = (props) => {
         )}
         <CreateHoldingDialog
             snackbarRef={snackbarRef}
+            holdings={props.holdings}
+            setHoldings={props.setHoldings}
         />
         <CustomSnackBar ref={snackbarRef} />
     </Toolbar>

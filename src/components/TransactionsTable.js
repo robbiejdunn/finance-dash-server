@@ -161,7 +161,13 @@ const EnhancedTableToolbar = (props) => {
                 setTransactions(
                     transactions.filter((t) => !selected.includes(t.tx_id))
                 );
-                snackbarRef.current.showSnackbar("success", "Transaction deleted");
+                let snackBarMsg;
+                if (numSelected > 1) {
+                    snackBarMsg = `${numSelected} transactions deleted successfully!`;
+                } else {
+                    snackBarMsg = "Transaction deleted successfully!"
+                }
+                snackbarRef.current.showSnackbar("success", snackBarMsg);
                 // reset selected
                 setSelected([]);
             });
@@ -200,10 +206,6 @@ const EnhancedTableToolbar = (props) => {
         ></CreateTransactionDialog>
     </Toolbar>
     );
-};
-
-EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired,
 };
 
 const useStyles = makeStyles((theme) => ({

@@ -41,7 +41,6 @@ exports.handler = async (event, context) => {
             items: listHoldingsResp.rows.map((h) => {
                 return {
                     ...h,
-                    holding_twenty_four_hour_change: (h.ticker_twenty_four_hour_change / 100) * h.ticker_price,
                     transactions: getRelevantTxResp.rows.filter((t) => t.holding_id === h.holding_id)
                 }
             })
