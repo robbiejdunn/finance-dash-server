@@ -31,7 +31,10 @@ export default function HoldingsListView() {
                 <ContentLoading />
             ): (
                 <div className={classes.root} component={Paper}>
-                    <HoldingsTable holdings={holdings} />
+                    <HoldingsTable
+                        holdings={holdings}
+                        setHoldings={setHoldings}
+                    />
                 </div>
             )}
         </>

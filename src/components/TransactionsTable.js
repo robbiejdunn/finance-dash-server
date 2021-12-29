@@ -137,24 +137,33 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
-    const { numSelected } = props;
+    const {
+        selected,
+        setSelected,
+        holdingId,
+        snackbarRef,
+        transactions,
+        setTransactions,
+    } = props;
+    
+    const numSelected = selected.length;
 
     const handleDeleteClicked = (e) => {
-        if (props.selected.length > 0) {
+        if (numSelected > 0) {
             const data = {
-                txIds: props.selected
+                txIds: selected
             };
             axios.post(
                 `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions/delete`,
                 data
             ).then(res => {
                 console.log(res);
-                props.setTransactions(
-                    props.transactions.filter((t) => !props.selected.includes(t.tx_id))
+                setTransactions(
+                    transactions.filter((t) => !selected.includes(t.tx_id))
                 );
-                props.snackbarRef.current.showSnackbar("success", "Transaction deleted");
+                snackbarRef.current.showSnackbar("success", "Transaction deleted");
                 // reset selected
-                props.setSelected([]);
+                setSelected([]);
             });
         }
     }
@@ -184,10 +193,10 @@ const EnhancedTableToolbar = (props) => {
         )}
 
         <CreateTransactionDialog
-            holdingId={props.holdingId}
-            snackbarRef={props.snackbarRef}
-            setTransactions={props.setTransactions}
-            transactions={props.transactions}
+            holdingId={holdingId}
+            snackbarRef={snackbarRef}
+            setTransactions={setTransactions}
+            transactions={transactions}
         ></CreateTransactionDialog>
     </Toolbar>
     );
@@ -294,7 +303,6 @@ export default function TransactionsTable(props) {
                 <EnhancedTableToolbar
                     selected={selected}
                     setSelected={setSelected}
-                    numSelected={selected.length}
                     holdingId={props.holdingId}
                     snackbarRef={props.snackbarRef}
                     setTransactions={props.setTransactions}

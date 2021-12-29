@@ -146,8 +146,37 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
-    const { numSelected } = props;
+    const {
+        selected,
+        setSelected,
+        holdings,
+        setHoldings,
+    } = props;
+
     const snackbarRef = useRef();
+
+    const numSelected = selected.length;
+
+    const handleDeleteClicked = (event) => {
+        if (numSelected > 0) {
+            const data = {
+                holdingIds: selected
+            };
+            setSelected([]);
+            // axios.post(
+            //     `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions/delete`,
+            //     data
+            // ).then(res => {
+            //     console.log(res);
+            //     props.setTransactions(
+            //         props.transactions.filter((t) => !props.selected.includes(t.tx_id))
+            //     );
+            //     props.snackbarRef.current.showSnackbar("success", "Transaction deleted");
+            //     // reset selected
+            //     props.setSelected([]);
+            // });
+        }
+    }
 
     return (
         <Toolbar
@@ -166,7 +195,7 @@ const EnhancedTableToolbar = (props) => {
         )}
         
         {numSelected > 0 && (
-            <Tooltip title="Delete">
+            <Tooltip title="Delete" onClick={(e) => handleDeleteClicked(e)}>
                 <IconButton aria-label="delete" size="large">
                     <DeleteIcon />
                 </IconButton>
@@ -279,7 +308,12 @@ export default function HoldingsTable(props) {
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
-                <EnhancedTableToolbar numSelected={selected.length} />
+                <EnhancedTableToolbar
+                    selected={selected}
+                    setSelected={setSelected}
+                    holdings={props.holdings}
+                    setHoldings={props.setHoldings}
+                />
                 <TableContainer>
                     <Table
                         className={classes.table}
@@ -290,6 +324,8 @@ export default function HoldingsTable(props) {
                         <EnhancedTableHead
                             classes={classes}
                             numSelected={selected.length}
+                            selected={selected}
+                            setSelected={setSelected}
                             order={order}
                             orderBy={orderBy}
                             onSelectAllClick={handleSelectAllClick}
