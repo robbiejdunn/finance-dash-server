@@ -92,18 +92,21 @@ export default function HoldingView() {
     const [twentyFourHrVolume, setTwentyFourHrVolume] = useState(0);
     const [marketCap, setMarketCap] = useState(0);
     const [holdingColor, setHoldingColor] = useState('#75daad');
-    const [circlesData, setCirclesData] = useState([]);
 
     const [contentLoading, setContentLoading] = useState(true);
 
     const snackbarRef = useRef();
 
+    const getTxCircles = () => {
+        return transactions.map((t) => {
+            return [new Date(t.datetime), parseFloat(t.price) / parseFloat(t.units)];
+        })
+    };
+
     useEffect(() => {
-        // console.log(`Content loading ${contentLoading}`)
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
         axios.get(endpoint)
         .then(res => {
-            console.log(res);
             setName(res.data.holding.ticker_name);
             setSymbol(res.data.holding.ticker_symbol);
             setImageUrl(res.data.holding.image_url);
@@ -111,12 +114,7 @@ export default function HoldingView() {
                 return [new Date(p.datetime), parseFloat(p.price)]
             }));
             setTransactions(res.data.transactions);
-            setCirclesData(res.data.transactions.map((t) => {
-                return [new Date(t.datetime), parseFloat(t.price) / parseFloat(t.units)]
-            }))
-            console.log(`Setting holding color to ${res.data.holding.color}`)
             setHoldingColor(res.data.holding.color);
-
             const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
             // console.log(recentTP);
             setCurrentPrice(recentTP.price);
@@ -124,7 +122,6 @@ export default function HoldingView() {
             setMarketCap(recentTP.market_cap);
             setTwentyFourHrVolume(recentTP.volume);
             setContentLoading(false);
-            console.log("Content loaded")
         });
     }, [holdingId]);
 
@@ -242,7 +239,7 @@ export default function HoldingView() {
                             ></TransactionsTable>
                             <HoldingPriceChart 
                                 data={tickerPrices}
-                                circlesData={circlesData}
+                                circlesData={getTxCircles()}
                                 chartColor={holdingColor}
                             ></HoldingPriceChart>
                             <CustomSnackBar ref={snackbarRef} />

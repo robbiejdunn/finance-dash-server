@@ -13,16 +13,16 @@ exports.handler = async (event, context) => {
         const requestData = JSON.parse(event.body);
         const client = new Client();
         await client.connect();
-        const delTxQuery = `
-            DELETE FROM transactions
-            WHERE tx_id IN ('${requestData.txIds.join('\',\'')}')
+        const delHoldingsQuery = `
+            DELETE FROM holdings
+            WHERE holding_id IN ('${requestData.holdingIds.join('\',\'')}')
         `;
-        console.log(delTxQuery);
-        const delTxRes = await client.query(delTxQuery);
-        console.log(delTxRes);
+        console.log(delHoldingsQuery);
+        const delHoldingsRes = await client.query(delHoldingsQuery);
+        console.log(delHoldingsRes);
         await client.end();
         response.statusCode = 200;
-        response.body = `Transactions deleted successfully`;
+        response.body = `Holdings deleted successfully`;
     } catch (err) {
         console.log(err);
         response.statusCode = 500;

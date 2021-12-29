@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten } from '@mui/material/styles';
@@ -22,11 +22,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { toCurrencyString, toGainString } from '../../utils';
 import CreateHoldingDialog from './CreateHoldingDialog';
 import { getMVTotalGain, getPurchasePrice, getUnits } from '../../utils/holding';
-
-
-function createData(id, name, symbol, units, currentPrice, marketValue) {
-    return { id, name, symbol, units, currentPrice, marketValue };
-}
+import { CustomSnackBar } from '../CustomSnackBar';
+import axios from 'axios';
 
 
 function descendingComparator(a, b, orderBy) {
@@ -150,7 +147,42 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
-    const { numSelected } = props;
+    const {
+        selected,
+        setSelected,
+        holdings,
+        setHoldings,
+    } = props;
+
+    const snackbarRef = useRef();
+
+    const numSelected = selected.length;
+
+    const handleDeleteClicked = (event) => {
+        if (numSelected > 0) {
+            const data = {
+                holdingIds: selected
+            };
+            axios.post(
+                `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/delete`,
+                data
+            ).then(res => {
+                console.log(res);
+                setHoldings(
+                    holdings.filter((h) => !selected.includes(h.holding_id))
+                );
+                let snackBarMsg;
+                if (numSelected > 1) {
+                    snackBarMsg = `${numSelected} holdings deleted successfully!`;
+                } else {
+                    snackBarMsg = "Holding deleted successfully!"
+                }
+                snackbarRef.current.showSnackbar("success", snackBarMsg);
+                // reset selected
+                setSelected([]);
+            });
+        }
+    }
 
     return (
         <Toolbar
@@ -169,13 +201,18 @@ const EnhancedTableToolbar = (props) => {
         )}
         
         {numSelected > 0 && (
-            <Tooltip title="Delete">
+            <Tooltip title="Delete" onClick={(e) => handleDeleteClicked(e)}>
                 <IconButton aria-label="delete" size="large">
                     <DeleteIcon />
                 </IconButton>
             </Tooltip>
         )}
-        <CreateHoldingDialog />
+        <CreateHoldingDialog
+            snackbarRef={snackbarRef}
+            holdings={props.holdings}
+            setHoldings={props.setHoldings}
+        />
+        <CustomSnackBar ref={snackbarRef} />
     </Toolbar>
     );
 };
@@ -279,7 +316,12 @@ export default function HoldingsTable(props) {
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
-                <EnhancedTableToolbar numSelected={selected.length} />
+                <EnhancedTableToolbar
+                    selected={selected}
+                    setSelected={setSelected}
+                    holdings={props.holdings}
+                    setHoldings={props.setHoldings}
+                />
                 <TableContainer>
                     <Table
                         className={classes.table}
@@ -290,6 +332,8 @@ export default function HoldingsTable(props) {
                         <EnhancedTableHead
                             classes={classes}
                             numSelected={selected.length}
+                            selected={selected}
+                            setSelected={setSelected}
                             order={order}
                             orderBy={orderBy}
                             onSelectAllClick={handleSelectAllClick}

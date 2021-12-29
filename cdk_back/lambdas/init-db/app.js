@@ -63,7 +63,6 @@ exports.handler = async(event, context) => {
             const createHoldingsTableQuery = `
                 CREATE TABLE holdings(
                     holding_id                  varchar(40) PRIMARY KEY,
-                    units                       numeric,
                     ticker_id                   varchar(40),
                     color                       varchar(7),
                     CONSTRAINT fk_ticker
@@ -130,7 +129,6 @@ exports.handler = async(event, context) => {
                 CREATE OR REPLACE VIEW get_holding_view AS
                     SELECT
                         holdings.holding_id AS holding_id,
-                        holdings.units AS units,
                         tickers.ticker_name AS ticker_name,
                         tickers.symbol AS ticker_symbol,
                         tickers.current_price AS current_price,
@@ -156,15 +154,12 @@ exports.handler = async(event, context) => {
                 CREATE OR REPLACE VIEW list_holdings_view AS
                     SELECT DISTINCT ON (h)
                         h.holding_id AS holding_id,
-                        h.units AS units,
                         t.ticker_name AS ticker_name,
                         t.symbol AS ticker_symbol,
                         t.image_url AS ticker_logo,
                         p.price AS ticker_price,
                         p.twenty_four_hour_change AS ticker_twenty_four_change,
-                        p.last_updated AS ticker_last_updated,
-                        p.price * h.units AS market_value,
-                        p.twenty_four_hour_change * h.units AS holding_twenty_four_hour_change
+                        p.last_updated AS ticker_last_updated
                     FROM holdings h
                         JOIN tickers t on h.ticker_id = t.ticker_id
                         JOIN (

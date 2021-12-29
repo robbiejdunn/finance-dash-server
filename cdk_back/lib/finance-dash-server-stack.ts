@@ -188,6 +188,22 @@ export class FinanceDashServerStack extends Stack {
             architecture: Architecture.ARM_64,
         });
 
+        const deleteHoldingsFunction = new Function(this, 'DeleteHoldingsFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/delete-holdings'),
+            timeout: Duration.minutes(1),
+            environment: {
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
         new Rule(this, 'CreateTickerPricesCronRule', {
@@ -207,6 +223,7 @@ export class FinanceDashServerStack extends Stack {
         const createTransactionIntegration = new LambdaIntegration(createTransactionFunction);
         const getPortfolioFullIntegration = new LambdaIntegration(getPortfolioFullFunction);
         const deleteTransactionsIntegration = new LambdaIntegration(deleteTransactionsFunction);
+        const deleteHoldingsIntegration = new LambdaIntegration(deleteHoldingsFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -220,13 +237,13 @@ export class FinanceDashServerStack extends Stack {
         const holdingsApiResource = api.root.addResource('holdings');
         holdingsApiResource.addMethod('POST', createHoldingIntegration);
         holdingsApiResource.addMethod('GET', getHoldingIntegration);
-
+        const holdingsDeleteAR = holdingsApiResource.addResource('delete');
+        holdingsDeleteAR.addMethod('POST', deleteHoldingsIntegration);
         const holdingsListApiResource = holdingsApiResource.addResource('list');
         holdingsListApiResource.addMethod('GET', listHoldingsIntegration);
 
         const transactionsApiResource = api.root.addResource('transactions');
         transactionsApiResource.addMethod('POST', createTransactionIntegration);
-
         const txDeleteAR = transactionsApiResource.addResource('delete');
         txDeleteAR.addMethod('POST', deleteTransactionsIntegration);
 

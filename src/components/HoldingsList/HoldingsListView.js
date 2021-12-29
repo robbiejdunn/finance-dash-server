@@ -19,10 +19,9 @@ export default function HoldingsListView() {
         const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/list`;
         axios.get(endpoint)
         .then(res => {
-            console.log("RES", res);
+            console.log(res);
             setHoldings(res.data.items);
-            setContentLoading(false);
-            
+            setContentLoading(false); 
         });
     }, []);
 
@@ -33,7 +32,10 @@ export default function HoldingsListView() {
                 <ContentLoading />
             ): (
                 <div className={classes.root} component={Paper}>
-                    <HoldingsTable holdings={holdings} />
+                    <HoldingsTable
+                        holdings={holdings}
+                        setHoldings={setHoldings}
+                    />
                 </div>
             )}
         </>

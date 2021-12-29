@@ -8,6 +8,5 @@ export const getPurchasePrice = (transactions) => {
 
 export const getMVTotalGain = (transactions, currentPrice) => {
     const txGains = transactions.map((t) => (currentPrice * parseFloat(t.units)) - parseFloat(t.price));
-    console.log(txGains.reduce((a, b) => a + b, 0))
     return txGains.reduce((a, b) => a + b, 0);
 }

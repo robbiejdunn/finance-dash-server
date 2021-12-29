@@ -137,20 +137,39 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
     const classes = useToolbarStyles();
-    const { numSelected } = props;
+    const {
+        selected,
+        setSelected,
+        holdingId,
+        snackbarRef,
+        transactions,
+        setTransactions,
+    } = props;
+    
+    const numSelected = selected.length;
 
     const handleDeleteClicked = (e) => {
-        console.log(e);
-        console.log(props.selected);
-        if (props.selected.length > 0) {
+        if (numSelected > 0) {
             const data = {
-                txIds: props.selected
+                txIds: selected
             };
             axios.post(
                 `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}transactions/delete`,
                 data
             ).then(res => {
                 console.log(res);
+                setTransactions(
+                    transactions.filter((t) => !selected.includes(t.tx_id))
+                );
+                let snackBarMsg;
+                if (numSelected > 1) {
+                    snackBarMsg = `${numSelected} transactions deleted successfully!`;
+                } else {
+                    snackBarMsg = "Transaction deleted successfully!"
+                }
+                snackbarRef.current.showSnackbar("success", snackBarMsg);
+                // reset selected
+                setSelected([]);
             });
         }
     }
@@ -180,17 +199,13 @@ const EnhancedTableToolbar = (props) => {
         )}
 
         <CreateTransactionDialog
-            holdingId={props.holdingId}
-            snackbarRef={props.snackbarRef}
-            setTransactions={props.setTransactions}
-            transactions={props.transactions}
+            holdingId={holdingId}
+            snackbarRef={snackbarRef}
+            setTransactions={setTransactions}
+            transactions={transactions}
         ></CreateTransactionDialog>
     </Toolbar>
     );
-};
-
-EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired,
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -289,7 +304,7 @@ export default function TransactionsTable(props) {
             <Paper className={classes.paper}>
                 <EnhancedTableToolbar
                     selected={selected}
-                    numSelected={selected.length}
+                    setSelected={setSelected}
                     holdingId={props.holdingId}
                     snackbarRef={props.snackbarRef}
                     setTransactions={props.setTransactions}

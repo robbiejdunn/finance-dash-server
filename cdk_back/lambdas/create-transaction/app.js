@@ -63,8 +63,7 @@ exports.handler = async (event, context) => {
             price: `${requestData.price}`,
             tx_id: `${txId}`,
             units: `${requestData.units}`,
-        }
-
+        };
         response.statusCode = 200;
         response.body = JSON.stringify(responseData);
     } catch (err) {
