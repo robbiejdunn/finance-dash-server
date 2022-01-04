@@ -23,7 +23,7 @@ export default function HoldingsListView() {
         getSession()
             .then((session) => {
                 console.log(`Authenticated with session ${session}`);
-                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/list`;
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/list/accountId='${session.idToken.payload.sub}'`;
                 axios.get(endpoint)
                     .then(res => {
                         console.log(res);

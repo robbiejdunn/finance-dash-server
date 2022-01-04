@@ -58,11 +58,36 @@ exports.handler = async(event, context) => {
             console.log(err);
         }
 
+        // Ticker prices table
+        try {
+            const createTickerPricesTableQuery = `
+                CREATE TABLE ticker_prices(
+                    tp_id                       varchar(40) PRIMARY KEY,
+                    ticker_id                   varchar(40),
+                    datetime                    timestamp,
+                    price                       numeric,
+                    twenty_four_hour_change     numeric,
+                    market_cap                  numeric,
+                    volume                      numeric,
+                    last_updated                timestamp,
+                    CONSTRAINT fk_ticker
+                        FOREIGN KEY(ticker_id)
+                            REFERENCES tickers(ticker_id)
+                )
+            `;
+            const createTickerPricesTableRes = await client.query(createTickerPricesTableQuery);
+            console.log(createTickerPricesTableRes);
+        }
+        catch (err) {
+            console.log(err);
+        }
+
         // Holdings table
         try {
             const createHoldingsTableQuery = `
                 CREATE TABLE holdings(
                     holding_id                  varchar(40) PRIMARY KEY,
+                    account_id                  varchar(40),
                     ticker_id                   varchar(40),
                     color                       varchar(7),
                     CONSTRAINT fk_ticker
@@ -99,30 +124,6 @@ exports.handler = async(event, context) => {
             console.log(err);
         }
 
-        // Ticker prices table
-        try {
-            const createTickerPricesTableQuery = `
-                CREATE TABLE ticker_prices(
-                    tp_id                       varchar(40) PRIMARY KEY,
-                    ticker_id                   varchar(40),
-                    datetime                    timestamp,
-                    price                       numeric,
-                    twenty_four_hour_change     numeric,
-                    market_cap                  numeric,
-                    volume                      numeric,
-                    last_updated                timestamp,
-                    CONSTRAINT fk_ticker
-                        FOREIGN KEY(ticker_id)
-                            REFERENCES tickers(ticker_id)
-                )
-            `;
-            const createTickerPricesTableRes = await client.query(createTickerPricesTableQuery);
-            console.log(createTickerPricesTableRes);
-        }
-        catch (err) {
-            console.log(err);
-        }
-
         // Get holding view
         try {
             const createGetHoldingViewQuery = `
@@ -138,7 +139,8 @@ exports.handler = async(event, context) => {
                         tickers.image_url AS image_url,
                         tickers.coin_id AS coin_id,
                         tickers.ticker_id AS ticker_id,
-                        holdings.color AS color
+                        holdings.color AS color,
+                        holdings.account_id AS account_id
                     FROM holdings 
                         INNER JOIN tickers ON holdings.ticker_id=tickers.ticker_id
             `;
@@ -159,7 +161,8 @@ exports.handler = async(event, context) => {
                         t.image_url AS ticker_logo,
                         p.price AS ticker_price,
                         p.twenty_four_hour_change AS ticker_twenty_four_change,
-                        p.last_updated AS ticker_last_updated
+                        p.last_updated AS ticker_last_updated,
+                        h.account_id AS account_id
                     FROM holdings h
                         JOIN tickers t on h.ticker_id = t.ticker_id
                         JOIN (

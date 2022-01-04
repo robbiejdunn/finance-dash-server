@@ -9,11 +9,14 @@ exports.handler = async (event, context) => {
         }
     }
     try {
+        console.log('Received event:', JSON.stringify(event, null, 2));
+        const accountId = event.multiValueQueryStringParameters.accountId[0];
+
         const client = new Client();
         await client.connect();
         console.log("Connected to postgres")
 
-        const listHoldingsQuery = 'SELECT * FROM list_holdings_view';
+        const listHoldingsQuery = `SELECT * FROM list_holdings_view WHERE account_id='${accountId}'`;
         console.log(`List holdings query: ${listHoldingsQuery}`);
         const listHoldingsResp = await client.query(listHoldingsQuery);
         console.log(listHoldingsResp);

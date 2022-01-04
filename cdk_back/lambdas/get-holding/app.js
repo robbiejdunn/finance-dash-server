@@ -17,7 +17,7 @@ exports.handler = async (event, context) => {
 
         // Get holding joined by ticker
         const getHoldingQuery = `
-            SELECT * FROM get_holding_view WHERE holding_id='${holdingId}'
+            SELECT * FROM get_holding_view WHERE holding_id='${holdingId}' AND account_id='${accountId}'
         `;
         const getHoldingResp = await client.query(getHoldingQuery);
         console.log(getHoldingResp);

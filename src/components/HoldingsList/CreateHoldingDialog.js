@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -11,6 +11,8 @@ import axios from 'axios';
 import Pagination from '@mui/material/Pagination';
 import AddIcon from '@mui/icons-material/Add';
 import CircularProgress from '@mui/material/CircularProgress';
+import { AccountContext } from "../Account";
+import  { Redirect } from 'react-router-dom'
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
@@ -65,6 +67,8 @@ export default function CreateHoldingDialog(props) {
     const [selected, setSelected] = React.useState(null);
     const [addLoading, setAddLoading] = React.useState(false);
     const [addSuccess, setAddSuccess] = React.useState(false);
+
+    const { getSession } = useContext(AccountContext);
 
     const buttonSx = {
         ...(addSuccess && {
