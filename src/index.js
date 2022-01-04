@@ -22,10 +22,12 @@ const theme = createTheme({
 });
 
 ReactDOM.render(
-  <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={theme}>
-        <ClippedDrawer />
+    <React.StrictMode>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <Account>
+                    <ClippedDrawer />
+                </Account>
         {/* <Account>
             <Status />
             <Login />

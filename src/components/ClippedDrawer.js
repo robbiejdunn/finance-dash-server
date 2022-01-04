@@ -20,6 +20,8 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import HoldingsListView from './HoldingsList/HoldingsListView';
 import HoldingView from './HoldingView';
 import Dashboard from './Dashboard';
+import Status from './Status';
+import Login from './Login';
 
 const drawerWidth = 240;
 
@@ -46,11 +48,13 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(3),
   },
   navItemSelected: {
-    // backgroundColor: theme.palette.secondary.main,
     background: 'linear-gradient(0deg, #0a093a 0%, #2421b7 100%)'
   },
   nested: {
     paddingLeft: theme.spacing(4),
+  },
+  titleText: {
+      flex: 1
   },
 }));
 
@@ -63,12 +67,14 @@ export default function ClippedDrawer() {
             <CssBaseline />
             <AppBar position="fixed" className={classes.appBar}>
                 <Toolbar>
-                <Typography 
-                    variant="h6" 
-                    noWrap
-                >
-                    Investment Tracker
-                </Typography>
+                    <Typography
+                        className={classes.titleText}
+                        variant="h6" 
+                        noWrap
+                    >
+                        Investment Tracker
+                    </Typography>
+                    <Status />
                 </Toolbar>
             </AppBar>
             <Drawer
@@ -115,6 +121,9 @@ export default function ClippedDrawer() {
                     </Route>
                     <Route path="/dashboard">
                         <Dashboard />
+                    </Route>
+                    <Route path="/login">
+                        <Login />
                     </Route>
                 </Switch>
             </main>
