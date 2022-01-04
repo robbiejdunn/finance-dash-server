@@ -14,6 +14,7 @@ export class FinanceDashStack extends Stack {
             websiteIndexDocument: 'index.html',
             publicReadAccess: true,
             removalPolicy: RemovalPolicy.DESTROY,
+            autoDeleteObjects: true,
         });
 
         const distribution = new Distribution(this, 'CloudDist', {
@@ -42,7 +43,7 @@ export class FinanceDashStack extends Stack {
                     implicitCodeGrant: true,
                 },
                 callbackUrls: [
-                    `https://${distribution.domainName}/home`
+                    `https://${distribution.domainName}/dashboard`
                 ]
             },
         });
@@ -54,7 +55,7 @@ export class FinanceDashStack extends Stack {
         });
 
         const signInUrl = domain.signInUrl(userPoolClient, {
-            redirectUri: `https://${distribution.domainName}/home`
+            redirectUri: `https://${distribution.domainName}/dashboard`
         });
     }
 }

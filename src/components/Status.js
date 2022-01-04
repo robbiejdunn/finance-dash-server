@@ -5,8 +5,10 @@ import Identicon from "identicon.js";
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { useHistory } from 'react-router-dom';
 
 const Status = () => {
+    let history = useHistory();
     const [svgString, setSvgString] = useState("");
 
     const { getSession, logout } = useContext(AccountContext);
@@ -25,6 +27,7 @@ const Status = () => {
     const handleLogout = () => {
         logout();
         setAnchorEl(null);
+        history.push("/login");
     };
 
     useEffect(() => {
