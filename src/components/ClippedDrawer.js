@@ -20,6 +20,7 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import HoldingsListView from './HoldingsList/HoldingsListView';
 import HoldingView from './HoldingView';
 import Dashboard from './Dashboard';
+import Status from './Status';
 
 const drawerWidth = 240;
 
@@ -52,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
   nested: {
     paddingLeft: theme.spacing(4),
   },
+  titleText: {
+      flex: 1
+  },
 }));
 
 export default function ClippedDrawer() {
@@ -63,12 +67,14 @@ export default function ClippedDrawer() {
             <CssBaseline />
             <AppBar position="fixed" className={classes.appBar}>
                 <Toolbar>
-                <Typography 
-                    variant="h6" 
-                    noWrap
-                >
-                    Investment Tracker
-                </Typography>
+                    <Typography
+                        className={classes.titleText}
+                        variant="h6" 
+                        noWrap
+                    >
+                        Investment Tracker
+                    </Typography>
+                    <Status />
                 </Toolbar>
             </AppBar>
             <Drawer

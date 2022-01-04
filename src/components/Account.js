@@ -13,14 +13,16 @@ const Account = (props) => {
                     if (err) {
                         reject();
                     } else {
+                        console.log("Resoving");
                         resolve(session);
                     }
                 })
             } else {
+                console.log("Rejecting");
                 reject();
             }
         })
-    } 
+    };
 
     const authenticate = async (Username, Password) => {
         return await new Promise((resolve, reject) => {
@@ -45,8 +47,16 @@ const Account = (props) => {
         });
     };
 
+    const logout = () => {
+        console.log("Logging out");
+        const user = Pool.getCurrentUser();
+        if (user) {
+            user.signOut();
+        }
+    };
+
     return (
-        <AccountContext.Provider value={{ authenticate, getSession }}>
+        <AccountContext.Provider value={{ authenticate, getSession, logout }}>
             {props.children}
         </AccountContext.Provider>
     )
