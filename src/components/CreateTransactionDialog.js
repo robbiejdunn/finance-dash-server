@@ -14,9 +14,6 @@ import makeStyles from '@mui/styles/makeStyles';
 import { FilledInput, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Tooltip } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DatePicker from '@mui/lab/DatePicker';
 
 const useStyles = makeStyles((theme) => ({
     horizControlsContainer: {
