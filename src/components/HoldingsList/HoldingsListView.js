@@ -5,7 +5,7 @@ import axios from 'axios';
 import HoldingsTable from './HoldingsTable';
 import ContentLoading from '../ContentLoading';
 import { AccountContext } from "../Account";
-import  { Redirect } from 'react-router-dom'
+import  { Redirect } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({}));
 
@@ -23,17 +23,16 @@ export default function HoldingsListView() {
         getSession()
             .then((session) => {
                 console.log(`Authenticated with session ${session}`);
-                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/list`;
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/list/?accountId=${session.idToken.payload.sub}`;
                 axios.get(endpoint)
                     .then(res => {
                         console.log(res);
                         setHoldings(res.data.items);
                         setContentLoading(false); 
                     });
-            })
-            .catch((err) => {
+            }).catch((err) => {
                 setAuthFailed(true);
-                console.log("Not authenticated. Redirecting")
+                console.log("Not authenticated. Redirecting");
             });
     }, [getSession]);
 

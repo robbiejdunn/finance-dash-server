@@ -1,83 +1,67 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import PortfolioGraph from './PortfolioGraph';
 import axios from 'axios';
-import { toCurrencyString, category20Colors } from '../utils';
+import { toCurrencyString } from '../utils';
 import HoldingsPieChart from './HoldingsPieChart';
 import ContentLoading from './ContentLoading';
-
+import { AccountContext } from "./Account";
+import  { Redirect } from 'react-router-dom';
 
 export default function Dashboard(props) {
     const [portfolioValue, setPortfolioValue] = useState(0);
     const [holdingsJoined, setHoldingsJoined] = useState();
     const [pieChartData, setPieChartData] = useState([]);
     const [contentLoading, setContentLoading] = useState(true);
+    const [authFailed, setAuthFailed] = useState(false);
+
+    const { getSession } = useContext(AccountContext);
     
     useEffect(() => {
-        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio`;
-        axios.get(endpoint).then(res => {
-            let holdingsDict = {};
-            
-            // Maps holdings to their chart color
-            let colorIndex = 0;
-            res.data.holdings.map((holding) => {
-                const currColor = category20Colors[colorIndex++];
-                
-                holding.market_value = holding.units * holding.current_price;
+        getSession()
+            .then((session) => {
+                console.log(`Authenticated with session ${session}`);
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio/?accountId=${session.idToken.payload.sub}`;
+                axios.get(endpoint)
+                    .then(res => {
+                        console.log(res);
+                        const combinedData = res.data.holdings.map((holding) => {
+                            const holdingTxs = res.data.transactions.filter((t) => {
+                                return t.holding_id === holding.holding_id;
+                            });
+                            console.log(holdingTxs)
+                            const units = holdingTxs.reduce((a, b) => a + +b.units, 0);
+                            const marketValue = units * parseFloat(holding.current_price);
+                            return {
+                                ...holding,
+                                units,
+                                marketValue,
+                            };
+                        });
+                        console.log(combinedData)
+                        const filteredData = combinedData.filter((h) => h.marketValue > 0);
+                        const marketValues = filteredData.map((h) => h.marketValue);
+                        setPortfolioValue(marketValues.reduce((a, b) => a + b, 0));
 
-                if(holding.market_value > 0) {
-                    holdingsDict[holding.holding_id] = {...holding, color: currColor};
-                }
-                return null;
-            });
+                        setPieChartData(filteredData.map((h) => {
+                            return {
+                                marketValue: h.marketValue,
+                                symbol: h.ticker_symbol,
+                                units: h.units,
+                                color: h.color,
+                            };
+                        }));
 
-            // Join transactions to holdings
-            res.data.transactions.map((transaction) => {
-                if(holdingsDict[transaction.holding_id]) {
-                    if(holdingsDict[transaction.holding_id].transactions) {
-                        holdingsDict[transaction.holding_id].transactions.push(transaction);
-                    } else {
-                        holdingsDict[transaction.holding_id].transactions = [transaction];
-                    }
-                }
-                return null;
+                        setContentLoading(false);
+                    });
+            }).catch((err) => {
+                setAuthFailed(true);
+                console.log("Not authenticated. Redirecting");
             });
-            
-            // Join ticker prices to tickers
-            let tickerPricesDict = {};
-            res.data.tickerPrices.map((tp) => {
-                if (tickerPricesDict[tp.ticker_id]) {
-                    tickerPricesDict[tp.ticker_id].push(tp);
-                } else {
-                    tickerPricesDict[tp.ticker_id] = [tp];
-                }
-                return null;
-            });
-            Object.entries(holdingsDict).map(([key, val]) => {
-                holdingsDict[key].t_prices = tickerPricesDict[val.ticker_id];
-                return null;
-            });
+    }, [getSession]);
 
-            // setHoldings(res.data.holdings);
-            // setTransactions(res.data.transactions);
-            const holdingsValues = res.data.holdings.map((holding) => {
-                return holding.market_value;
-            });
-            // using unary plus operator see https://stackoverflow.com/questions/8976627/how-to-add-two-strings-as-if-they-were-numbers
-            setPortfolioValue(holdingsValues.reduce((a, b) => +a + +b));
-            setHoldingsJoined(holdingsDict);
-            setPieChartData(Object.entries(holdingsDict).filter(([id, holding]) => {
-                return parseInt(holding.market_value) > 0
-            }).map(([k, v]) => {
-                return {
-                    marketValue: v.market_value,
-                    symbol: v.ticker_symbol,
-                    units: v.units,
-                    color: v.color,
-                }
-            }));
-            setContentLoading(false);
-        });
-    }, []);
+    if (authFailed) {
+        return <Redirect to='/login' />
+    }
 
     return (
         <>

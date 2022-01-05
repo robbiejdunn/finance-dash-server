@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import makeStyles from '@mui/styles/makeStyles';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -11,6 +11,8 @@ import HoldingPriceChart from './HoldingPriceChart/HoldingPriceChart';
 import ContentLoading from './ContentLoading';
 import { CustomSnackBar } from './CustomSnackBar';
 import { getUnits, getPurchasePrice, getMVTotalGain } from '../utils/holding'
+import { AccountContext } from "./Account";
+import  { Redirect } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -18,9 +20,6 @@ const useStyles = makeStyles((theme) => ({
         '& a': {
             color: 'green',
         }
-    },
-    table: {
-        // minWidth: 650,
     },
     flexRow: {
         display: 'flex',
@@ -92,10 +91,13 @@ export default function HoldingView() {
     const [twentyFourHrVolume, setTwentyFourHrVolume] = useState(0);
     const [marketCap, setMarketCap] = useState(0);
     const [holdingColor, setHoldingColor] = useState('#75daad');
+    const [authFailed, setAuthFailed] = useState(false);
 
     const [contentLoading, setContentLoading] = useState(true);
 
     const snackbarRef = useRef();
+
+    const { getSession } = useContext(AccountContext);
 
     const getTxCircles = () => {
         return transactions.map((t) => {
@@ -104,26 +106,36 @@ export default function HoldingView() {
     };
 
     useEffect(() => {
-        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}`;
-        axios.get(endpoint)
-        .then(res => {
-            setName(res.data.holding.ticker_name);
-            setSymbol(res.data.holding.ticker_symbol);
-            setImageUrl(res.data.holding.image_url);
-            setTickerPrices(res.data.tickerPrices.map((p) => {
-                return [new Date(p.datetime), parseFloat(p.price)]
-            }));
-            setTransactions(res.data.transactions);
-            setHoldingColor(res.data.holding.color);
-            const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
-            // console.log(recentTP);
-            setCurrentPrice(recentTP.price);
-            setTwentyFourHrChange(recentTP.twenty_four_hour_change);
-            setMarketCap(recentTP.market_cap);
-            setTwentyFourHrVolume(recentTP.volume);
-            setContentLoading(false);
-        });
-    }, [holdingId]);
+        getSession()
+            .then((session) => {
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings/?id=${holdingId}&accountId=${session.idToken.payload.sub}`;
+                axios.get(endpoint)
+                .then(res => {
+                    setName(res.data.holding.ticker_name);
+                    setSymbol(res.data.holding.ticker_symbol);
+                    setImageUrl(res.data.holding.image_url);
+                    setTickerPrices(res.data.tickerPrices.map((p) => {
+                        return [new Date(p.datetime), parseFloat(p.price)]
+                    }));
+                    setTransactions(res.data.transactions);
+                    setHoldingColor(res.data.holding.color);
+                    const recentTP = res.data.tickerPrices[res.data.tickerPrices.length - 1];
+                    // console.log(recentTP);
+                    setCurrentPrice(recentTP.price);
+                    setTwentyFourHrChange(recentTP.twenty_four_hour_change);
+                    setMarketCap(recentTP.market_cap);
+                    setTwentyFourHrVolume(recentTP.volume);
+                    setContentLoading(false);
+                });
+            }).catch((err) => {
+                setAuthFailed(true);
+                console.log("Not authenticated. Redirecting");
+            });
+    }, [holdingId, getSession]);
+
+    if (authFailed) {
+        return <Redirect to='/login' />
+    }
 
     return (
         <>

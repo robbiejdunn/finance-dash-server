@@ -40,20 +40,6 @@ exports.handler = async (event, context) => {
         const insertTransactionRes = await client.query(insertTransactionQuery);
         console.log(insertTransactionRes);
 
-        // Update holding units
-        let updateOp = '-';
-        if (requestData.buySell === 'BUY') {
-            updateOp = '+';
-        }
-        const updateHoldingUnitsQuery = `
-            UPDATE holdings
-            SET units = units ${updateOp} ${requestData.units}
-            WHERE holding_id = '${requestData.holdingId}'
-        `;
-        console.log(`Holding units update query: ${updateHoldingUnitsQuery}`);
-        const updateHoldingUnitsRes = await client.query(updateHoldingUnitsQuery);
-        console.log(updateHoldingUnitsRes);
-
         await client.end();
 
         const responseData = {
