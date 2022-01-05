@@ -1,7 +1,7 @@
 import { Bucket } from '@aws-cdk/aws-s3';
 import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment';
 import { App, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
-import { Distribution } from '@aws-cdk/aws-cloudfront';
+import { Distribution, ErrorResponse } from '@aws-cdk/aws-cloudfront';
 import { S3Origin } from '@aws-cdk/aws-cloudfront-origins';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import * as cog from '@aws-cdk/aws-cognito';
@@ -17,8 +17,16 @@ export class FinanceDashStack extends Stack {
             autoDeleteObjects: true,
         });
 
+        // this is required to stop 404 errors on app routes
+        const customErrResponse: ErrorResponse = {
+            httpStatus: 404,
+            responseHttpStatus: 200,
+            responsePagePath: '/index.html',
+        }
+
         const distribution = new Distribution(this, 'CloudDist', {
             defaultBehavior: { origin: new S3Origin(siteBucket) },
+            errorResponses: [ customErrResponse ]
         });
 
         new BucketDeployment(this, 'DeploySite', {
