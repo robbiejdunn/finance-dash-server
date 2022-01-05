@@ -12,7 +12,7 @@ import Pagination from '@mui/material/Pagination';
 import AddIcon from '@mui/icons-material/Add';
 import CircularProgress from '@mui/material/CircularProgress';
 import { AccountContext } from "../Account";
-import  { Redirect } from 'react-router-dom'
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
@@ -56,6 +56,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function CreateHoldingDialog(props) {
+    let history = useHistory();
     const classes = useStyles();
     
     const [open, setOpen] = React.useState(false);
@@ -96,28 +97,34 @@ export default function CreateHoldingDialog(props) {
     };
 
     const handleAdd = (event) => {
-        setAddLoading(true);
-        console.log("Adding holding", selected);
-        const data = {
-            coinId: selected.id,
-        };
-        const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings`;
-        axios.post(
-            endpoint, 
-            data,
-            {
-                timeout: 10000
-            }
-        ).then(res => {
-            props.setHoldings([...props.holdings, res.data])
-            setAddLoading(false);
-            setAddSuccess(true);
-            setOpen(false);
-            props.snackbarRef.current.showSnackbar("success", "Holding added");
-            setAddSuccess(false);
-        }).catch((err) => {
-            console.log(err);
-        });
+        getSession()
+            .then((session) => {
+                console.log(`Authenticated with session ${session}`);
+                setAddLoading(true);
+                console.log("Adding holding", selected);
+                const data = {
+                    coinId: selected.id,
+                    accountId: session.idToken.payload.sub,
+                };
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}holdings`;
+                axios.post(
+                    endpoint,
+                    data,
+                    { timeout: 10000 }
+                    ).then(res => {
+                        props.setHoldings([...props.holdings, res.data])
+                        setAddLoading(false);
+                        setAddSuccess(true);
+                        setOpen(false);
+                        props.snackbarRef.current.showSnackbar("success", "Holding added");
+                        setAddSuccess(false);
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+            }).catch((err) => {
+                console.log("Not authenticated. Redirecting");
+                history.push("/login");
+            });
     };
 
     const handleSearchTextUpdated = (text) => {

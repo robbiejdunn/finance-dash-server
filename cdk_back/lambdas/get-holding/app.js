@@ -11,6 +11,7 @@ exports.handler = async (event, context) => {
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
         const holdingId = event.multiValueQueryStringParameters.id[0];
+        const accountId = event.multiValueQueryStringParameters.accountId[0];
 
         const client = new Client();
         await client.connect();

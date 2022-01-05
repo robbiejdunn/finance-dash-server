@@ -41,6 +41,7 @@ exports.handler = async (event, context) => {
         console.log('Received event:', JSON.stringify(event, null, 2));
         let requestData = JSON.parse(event.body);
         let pickedCryptoId = requestData['coinId'];
+        let accountId = requestData['accountId'];
 
         const coinGeckoFetchEndpoint = (
             `https://api.coingecko.com/api/v3/coins/${pickedCryptoId}`
@@ -88,14 +89,14 @@ exports.handler = async (event, context) => {
         const holdingId = uuidv4();
         const createHoldingQuery = `INSERT INTO holdings (
             holding_id,
-            units,
             ticker_id,
-            color)
+            color,
+            account_id)
         VALUES (
             '${holdingId}',
-            '0',
             '${tickerId}',
-            '${catTwentyColors[Math.floor(Math.random() * catTwentyColors.length)]}')
+            '${catTwentyColors[Math.floor(Math.random() * catTwentyColors.length)]}',
+            '${accountId}')
         `;
         console.log(`Holding query: ${createHoldingQuery}`);
         const createHoldingResp = await client.query(createHoldingQuery);
