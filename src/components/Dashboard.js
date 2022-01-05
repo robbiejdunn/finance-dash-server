@@ -50,6 +50,7 @@ export default function Dashboard(props) {
                                 color: h.color,
                             };
                         }));
+
                         setContentLoading(false);
                     });
             }).catch((err) => {
