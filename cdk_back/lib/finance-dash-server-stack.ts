@@ -8,6 +8,7 @@ import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
+import * as iam from '@aws-cdk/aws-iam';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -242,8 +243,16 @@ export class FinanceDashServerStack extends Stack {
         const dbInitProvider = new Provider(this, 'DBInitProvider', {
             onEventHandler: initDBFunction,
             logRetention: RetentionDays.ONE_WEEK,
-        })
-        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
+        });
+        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken });
+
+        createHoldingFunction.addToRolePolicy(
+            new iam.PolicyStatement({
+                principals: [new iam.AnyPrincipal()],
+                actions: ['lambda:InvokeFunction'],
+                resources: [importPortfolioFunction.functionArn]
+            })
+        );
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);

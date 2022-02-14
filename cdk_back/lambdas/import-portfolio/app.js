@@ -21,21 +21,20 @@ exports.handler = async (event, context) => {
             FunctionName: CreateHoldingFunction,
             InvocationType: 'RequestResponse',
             LogType: 'Tail',
-            Payload: {
-                coinId: "bitcoin",
-                accountId: accountId,
-            },
+            Payload: `{ "coinId": "bitcoin", "accountId": "${accountId}" }`,
         };
         console.log(params);
 
-        lambda.invoke(params, (err, data) => {
+        await lambda.invoke(params, (err, data) => {
             if (err) {
                 throw err
             } else {
                 console.log("Function successfully called");
                 console.log(data);
             }
-        })
+        }).promise();
+
+        console.log("Complete")
 
         response.statusCode = 200;
         response.body = "Success";

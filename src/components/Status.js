@@ -35,6 +35,20 @@ const Status = () => {
 
     const handleImportPortfolio = () => {
         console.log("Import portfolio pressed");
+        getSession()
+            .then((session) => {
+                let endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio/import`;
+                let requestBody = {
+                    accountId: session.idToken.payload.sub
+                };
+                axios.post(endpoint, requestBody)
+                .then(res => {
+                    console.log(res);
+                })
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     };
 
     const handleExportPortfolio = () => {
