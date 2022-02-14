@@ -204,6 +204,22 @@ export class FinanceDashServerStack extends Stack {
             architecture: Architecture.ARM_64,
         });
 
+        const exportPortfolioFunction = new Function(this, 'ExportPortfolioFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/export-portfolio'),
+            timeout: Duration.minutes(1),
+            environment: {
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
         new Rule(this, 'CreateTickerPricesCronRule', {
@@ -224,6 +240,7 @@ export class FinanceDashServerStack extends Stack {
         const getPortfolioFullIntegration = new LambdaIntegration(getPortfolioFullFunction);
         const deleteTransactionsIntegration = new LambdaIntegration(deleteTransactionsFunction);
         const deleteHoldingsIntegration = new LambdaIntegration(deleteHoldingsFunction);
+        const exportPortfolioIntegration = new LambdaIntegration(exportPortfolioFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -249,5 +266,7 @@ export class FinanceDashServerStack extends Stack {
 
         const portfolioApiResource = api.root.addResource('portfolio');
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
+        const portfolioExportAR = portfolioApiResource.addResource('export');
+        portfolioExportAR.addMethod('GET', exportPortfolioIntegration);
     }
 }

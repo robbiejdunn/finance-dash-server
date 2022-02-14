@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AccountContext } from "./Account";
-// import { toSvg } from "jdenticon";
 import Identicon from "identicon.js";
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useHistory } from 'react-router-dom';
+import axios from 'axios';
 
 const Status = () => {
     let history = useHistory();
@@ -28,6 +28,25 @@ const Status = () => {
         logout();
         setAnchorEl(null);
         history.push("/login");
+    };
+
+    const handleImportPortfolio = () => {
+        console.log("Import portfolio pressed");
+    };
+
+    const handleExportPortfolio = () => {
+        console.log("Export portfolio pressed");
+        getSession()
+            .then((session) => {
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio/export/?accountId=${session.idToken.payload.sub}`;
+                axios.get(endpoint)
+                .then(res => {
+                    console.log(res);
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     };
 
     useEffect(() => {
@@ -80,6 +99,8 @@ const Status = () => {
                     horizontal: 'right',
                 }}
             >
+                <MenuItem onClick={handleImportPortfolio}>Import portfolio</MenuItem>
+                <MenuItem onClick={handleExportPortfolio}>Export portfolio</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </div>

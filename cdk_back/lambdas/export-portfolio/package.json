@@ -1,0 +1,13 @@
+{
+    "name": "finance-dash-server-export-portfolio",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Robbie Dunn",
+    "dependencies": {
+        "pg": "^8.7.1"
+    }
+}
