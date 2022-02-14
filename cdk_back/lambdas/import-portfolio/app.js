@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-AWS.config.region = "eu-west-1";
+AWS.config.region = "eu-west-2";
 const lambda = new AWS.Lambda();
 
 const CreateHoldingFunction = process.env.CREATEHOLDINGNAME;

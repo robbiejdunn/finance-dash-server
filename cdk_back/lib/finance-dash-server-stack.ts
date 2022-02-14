@@ -246,13 +246,16 @@ export class FinanceDashServerStack extends Stack {
         });
         new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken });
 
-        createHoldingFunction.addToRolePolicy(
-            new iam.PolicyStatement({
-                principals: [new iam.AnyPrincipal()],
-                actions: ['lambda:InvokeFunction'],
-                resources: [importPortfolioFunction.functionArn]
-            })
-        );
+        const createHoldingPolicy = new iam.PolicyStatement({
+            actions: ["lambda:InvokeFunction"],
+            resources: [createHoldingFunction.functionArn],
+        });
+
+        const importPortfolioAccessPolicy = new iam.Policy(this, 'ImportPortfolioAccessPolicy', {
+            statements: [createHoldingPolicy],
+        });
+
+        importPortfolioFunction.role?.attachInlinePolicy(importPortfolioAccessPolicy);
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
