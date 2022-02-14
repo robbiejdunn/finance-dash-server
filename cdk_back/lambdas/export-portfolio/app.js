@@ -29,15 +29,17 @@ exports.handler = async (event, context) => {
         console.log(getTransactionsRes);
         await client.end();
 
-        const response = getHoldingsRes.rows.map((h) => {
+        const responseBody = getHoldingsRes.rows.map((h) => {
             return {
                 coinID: h.coin_id,
                 transactions: getTransactionsRes.rows.filter((t) => t.holding_id === h.holding_id),
             };
-        })
+        });
+        
+        console.log(responseBody);
 
         response.statusCode = 200;
-        response.body = JSON.stringify(response);
+        response.body = JSON.stringify(responseBody);
     } catch (err) {
         console.log(err);
         response.statusCode = 500;
