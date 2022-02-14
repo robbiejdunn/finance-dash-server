@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { AccountContext } from "./Account";
 import Identicon from "identicon.js";
 import Button from '@mui/material/Button';
@@ -13,7 +13,10 @@ const Status = () => {
 
     const { getSession, logout } = useContext(AccountContext);
 
+    const downloadAnchorRef = useRef();
+
     const [anchorEl, setAnchorEl] = React.useState(null);
+    const [fileDownloadUrl, setFileDownloadUrl] = React.useState("");
     const open = Boolean(anchorEl);
 
     const handleClick = (event) => {
@@ -42,6 +45,12 @@ const Status = () => {
                 axios.get(endpoint)
                 .then(res => {
                     console.log(res);
+                    const blob = new Blob([JSON.stringify(res.data)]);
+                    const fileDownloadUrl = URL.createObjectURL(blob);
+                    setFileDownloadUrl(fileDownloadUrl);
+                    downloadAnchorRef.current.click();
+                    URL.revokeObjectURL(fileDownloadUrl);
+                    setFileDownloadUrl("");
                 });
             })
             .catch((err) => {
@@ -73,6 +82,12 @@ const Status = () => {
 
     return (
         <div>
+            <a
+                style={{display: "none"}}
+                href={fileDownloadUrl}
+                download={"portfolio.json"}
+                ref={downloadAnchorRef}
+            >Download</a>
             <Button
                 id="basic-button"
                 aria-controls={open ? 'basic-menu' : undefined}

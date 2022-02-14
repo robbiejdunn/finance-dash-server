@@ -32,7 +32,18 @@ exports.handler = async (event, context) => {
         const responseBody = getHoldingsRes.rows.map((h) => {
             return {
                 coinID: h.coin_id,
-                transactions: getTransactionsRes.rows.filter((t) => t.holding_id === h.holding_id),
+                transactions: getTransactionsRes.rows.filter(
+                    (t) => t.holding_id === h.holding_id
+                ).map(
+                    (t) => {
+                        return {
+                            buySell: t.buy_sell,
+                            datetime: t.datetime,
+                            price: t.price,
+                            units: t.units,
+                        }
+                    }
+                ),
             };
         });
         
