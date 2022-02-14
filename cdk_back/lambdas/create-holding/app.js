@@ -39,6 +39,7 @@ exports.handler = async (event, context, callback) => {
     }
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
+        console.log(event.body);
         let requestData = JSON.parse(event.body);
         let pickedCryptoId = requestData['coinId'];
         let accountId = requestData['accountId'];

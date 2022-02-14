@@ -19,9 +19,9 @@ exports.handler = async (event, context) => {
 
         let params = {
             FunctionName: CreateHoldingFunction,
-            InvocationType: 'RequestResponse',
+            InvocationType: 'Event',
             LogType: 'Tail',
-            Payload: `{ "coinId": "bitcoin", "accountId": "${accountId}" }`,
+            Payload: `{ "body": "{ \\"coinId\\": \\"bitcoin\\", \\"accountId\\": \\"${accountId}\\" }" }`,
         };
         console.log(params);
 
