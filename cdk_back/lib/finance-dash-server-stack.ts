@@ -220,6 +220,18 @@ export class FinanceDashServerStack extends Stack {
             architecture: Architecture.ARM_64,
         });
 
+        const importPortfolioFunction = new Function(this, 'ImportPortfolioFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/import-portfolio'),
+            timeout: Duration.minutes(5),
+            environment: {
+                'CREATEHOLDINGNAME': createHoldingFunction.functionName,
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
         new Rule(this, 'CreateTickerPricesCronRule', {
@@ -241,6 +253,7 @@ export class FinanceDashServerStack extends Stack {
         const deleteTransactionsIntegration = new LambdaIntegration(deleteTransactionsFunction);
         const deleteHoldingsIntegration = new LambdaIntegration(deleteHoldingsFunction);
         const exportPortfolioIntegration = new LambdaIntegration(exportPortfolioFunction);
+        const importPortfolioIntegration = new LambdaIntegration(importPortfolioFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -268,5 +281,7 @@ export class FinanceDashServerStack extends Stack {
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
         const portfolioExportAR = portfolioApiResource.addResource('export');
         portfolioExportAR.addMethod('GET', exportPortfolioIntegration);
+        const portfolioImportAR = portfolioApiResource.addResource('import');
+        portfolioImportAR.addMethod('POST', importPortfolioIntegration);
     }
 }
