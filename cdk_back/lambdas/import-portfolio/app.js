@@ -19,13 +19,11 @@ exports.handler = async (event, context) => {
 
         let params = {
             FunctionName: CreateHoldingFunction,
-            InvocationType: 'Event',
-            LogType: 'Tail',
-            Payload: `{ "body": "{ \\"coinId\\": \\"bitcoin\\", \\"accountId\\": \\"${accountId}\\" }" }`,
+            InvokeArgs: `{ "body": "{ \\"coinId\\": \\"bitcoin\\", \\"accountId\\": \\"${accountId}\\" }" }`,
         };
         console.log(params);
 
-        await lambda.invoke(params, (err, data) => {
+        await lambda.invokeAsync(params, (err, data) => {
             if (err) {
                 throw err
             } else {

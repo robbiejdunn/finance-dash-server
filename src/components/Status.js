@@ -6,6 +6,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
+import PortfolioImporter from "./ImportExport/PortfolioImporter";
 
 const Status = () => {
     let history = useHistory();
@@ -31,24 +32,6 @@ const Status = () => {
         logout();
         setAnchorEl(null);
         history.push("/login");
-    };
-
-    const handleImportPortfolio = () => {
-        console.log("Import portfolio pressed");
-        getSession()
-            .then((session) => {
-                let endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio/import`;
-                let requestBody = {
-                    accountId: session.idToken.payload.sub
-                };
-                axios.post(endpoint, requestBody)
-                .then(res => {
-                    console.log(res);
-                })
-            })
-            .catch((err) => {
-                console.error(err);
-            });
     };
 
     const handleExportPortfolio = () => {
@@ -128,12 +111,12 @@ const Status = () => {
                     horizontal: 'right',
                 }}
             >
-                <MenuItem onClick={handleImportPortfolio}>Import portfolio</MenuItem>
+                <PortfolioImporter />
                 <MenuItem onClick={handleExportPortfolio}>Export portfolio</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </div>
-    )
+    );
 };
 
 export default Status;
