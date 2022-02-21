@@ -227,7 +227,8 @@ export class FinanceDashServerStack extends Stack {
             code: Code.fromAsset('lambdas/import-portfolio'),
             timeout: Duration.minutes(5),
             environment: {
-                'CREATEHOLDINGNAME': createHoldingFunction.functionName,
+                'CreateHoldingFunctionName': createHoldingFunction.functionName,
+                'CreateTransactionFunctionName': createTransactionFunction.functionName,
             },
             logRetention: RetentionDays.ONE_WEEK,
             architecture: Architecture.ARM_64,
@@ -251,8 +252,16 @@ export class FinanceDashServerStack extends Stack {
             resources: [createHoldingFunction.functionArn],
         });
 
+        const createTransactionPolicy = new iam.PolicyStatement({
+            actions: ["lambda:InvokeFunction"],
+            resources: [createTransactionFunction.functionArn],
+        })
+
         const importPortfolioAccessPolicy = new iam.Policy(this, 'ImportPortfolioAccessPolicy', {
-            statements: [createHoldingPolicy],
+            statements: [
+                createHoldingPolicy,
+                createTransactionPolicy,
+            ],
         });
 
         importPortfolioFunction.role?.attachInlinePolicy(importPortfolioAccessPolicy);

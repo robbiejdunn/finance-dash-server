@@ -2,7 +2,8 @@ const AWS = require('aws-sdk');
 AWS.config.region = "eu-west-2";
 const lambda = new AWS.Lambda();
 
-const CreateHoldingFunction = process.env.CREATEHOLDINGNAME;
+const CreateHoldingFunction = process.env.CreateHoldingFunctionName;
+const CreateTransactionFunction = process.env.CreateTransactionFunctionName;
 
 exports.handler = async (event, context) => {
     const response = {
@@ -17,20 +18,38 @@ exports.handler = async (event, context) => {
         let requestData = JSON.parse(event.body);
         let accountId = requestData['accountId'];
 
+        console.log(requestData.portfolio);
+
         let params = {
             FunctionName: CreateHoldingFunction,
-            InvokeArgs: `{ "body": "{ \\"coinId\\": \\"bitcoin\\", \\"accountId\\": \\"${accountId}\\" }" }`,
+            InvocationType: "RequestResponse",
+            LogType: "Tail",
+            Payload: `{ "body": "{ \\"coinId\\": \\"bitcoin\\", \\"accountId\\": \\"${accountId}\\" }" }`,
         };
         console.log(params);
+        const data = await lambda.invoke(params).promise();
+        console.log("Function successfully called");
+        console.log(data);
 
-        await lambda.invokeAsync(params, (err, data) => {
-            if (err) {
-                throw err
-            } else {
-                console.log("Function successfully called");
-                console.log(data);
-            }
-        }).promise();
+        await requestData.portfolio.map(async (holding) => {
+            let params = {
+                FunctionName: CreateHoldingFunction,
+                InvokeArgs: `{ "body": "{ \\"coinId\\": \\"${holding.coinID}\\", \\"accountId\\": \\"${accountId}\\" }" }`,
+            };
+            console.log(params);
+            // const data = await lambda.invoke(params).promise();
+            // console.log("Function successfully called");
+            // console.log(data);
+
+            // await holding.transactions.map(async (transaction) => {
+            //     let txParams = {
+            //         FunctionName: CreateTransactionFunction,
+            //         InvokeArgs: `{ "body": "{ \\"holdingId\\": \\"${holding.coinID}\\", \\"accountId\\": \\"${accountId}\\" }" }`,
+            //     }
+            // })
+    
+
+        });
 
         console.log("Complete")
 
