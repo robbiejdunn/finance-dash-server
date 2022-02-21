@@ -1,11 +1,12 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { AccountContext } from "./Account";
-// import { toSvg } from "jdenticon";
 import Identicon from "identicon.js";
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useHistory } from 'react-router-dom';
+import axios from 'axios';
+import PortfolioImporter from "./ImportExport/PortfolioImporter";
 
 const Status = () => {
     let history = useHistory();
@@ -13,7 +14,10 @@ const Status = () => {
 
     const { getSession, logout } = useContext(AccountContext);
 
+    const downloadAnchorRef = useRef();
+
     const [anchorEl, setAnchorEl] = React.useState(null);
+    const [fileDownloadUrl, setFileDownloadUrl] = React.useState("");
     const open = Boolean(anchorEl);
 
     const handleClick = (event) => {
@@ -28,6 +32,27 @@ const Status = () => {
         logout();
         setAnchorEl(null);
         history.push("/login");
+    };
+
+    const handleExportPortfolio = () => {
+        console.log("Export portfolio pressed");
+        getSession()
+            .then((session) => {
+                const endpoint = `${process.env.REACT_APP_FINANCE_DASH_API_ENDPOINT}portfolio/export/?accountId=${session.idToken.payload.sub}`;
+                axios.get(endpoint)
+                .then(res => {
+                    console.log(res);
+                    const blob = new Blob([JSON.stringify(res.data)]);
+                    const fileDownloadUrl = URL.createObjectURL(blob);
+                    setFileDownloadUrl(fileDownloadUrl);
+                    downloadAnchorRef.current.click();
+                    URL.revokeObjectURL(fileDownloadUrl);
+                    setFileDownloadUrl("");
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     };
 
     useEffect(() => {
@@ -54,6 +79,12 @@ const Status = () => {
 
     return (
         <div>
+            <a
+                style={{display: "none"}}
+                href={fileDownloadUrl}
+                download={"portfolio.json"}
+                ref={downloadAnchorRef}
+            >Download</a>
             <Button
                 id="basic-button"
                 aria-controls={open ? 'basic-menu' : undefined}
@@ -80,10 +111,12 @@ const Status = () => {
                     horizontal: 'right',
                 }}
             >
+                <PortfolioImporter />
+                <MenuItem onClick={handleExportPortfolio}>Export portfolio</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </div>
-    )
+    );
 };
 
 export default Status;

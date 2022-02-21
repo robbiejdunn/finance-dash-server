@@ -29,7 +29,7 @@ const catTwentyColors = [
     "#9edae5",
 ];
 
-exports.handler = async (event, context) => {
+exports.handler = async (event, context, callback) => {
     const response = {
         headers: {        
             'Access-Control-Allow-Headers' : 'Content-Type',
@@ -39,6 +39,7 @@ exports.handler = async (event, context) => {
     }
     try {
         console.log('Received event:', JSON.stringify(event, null, 2));
+        console.log(event.body);
         let requestData = JSON.parse(event.body);
         let pickedCryptoId = requestData['coinId'];
         let accountId = requestData['accountId'];
@@ -216,6 +217,7 @@ exports.handler = async (event, context) => {
         response.statusCode = 200;
         response.body = JSON.stringify(responseData);
     } catch (err) {
+        callback(`[InternalServerError]: ${err}`);
         console.log(err);
         response.statusCode = 500;
         response.body = err;

@@ -1,12 +1,11 @@
 {
     "name": "finance-dash-server",
-    "version": "0.15.0",
+    "version": "0.16.0",
     "private": true,
     "dependencies": {
         "@emotion/react": "^11.7.1",
         "@emotion/styled": "^11.3.0",
         "@mui/icons-material": "^5.2.4",
-        "@mui/lab": "^5.0.0-alpha.63",
         "@mui/material": "^5.2.4",
         "@mui/styles": "^5.2.3",
         "@testing-library/jest-dom": "^5.16.1",
@@ -28,7 +27,6 @@
         "@visx/xychart": "^2.1.0",
         "amazon-cognito-identity-js": "^5.2.3",
         "axios": "^0.21.1",
-        "date-fns": "^2.28.0",
         "identicon.js": "^2.3.3",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",

@@ -52,19 +52,19 @@ function stableSort(array, comparator) {
         return a[1] - b[1];
     });
     return stabilizedThis.map((el) => el[0]);
-}
+};
 
 
 const headCells = [
-    { id: 'logo', numeric: false, disablePadding: false, label: '', width: '5%' },
-    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol' },
-    { id: 'name', numeric: false, disablePadding: false, label: 'Name' },
-    { id: 'units', numeric: false, disablePadding: false, label: 'Units' },
-    { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price' },
-    { id: 'ticker_twenty_four_change', numeric: false, disablePadding: false, label: 'Price 24h' },
-    { id: 'market_value', numeric: false, disablePadding: false, label: 'Market value' },
-    { id: 'market_value_twenty_four_change', numeric: false, disablePadding: false, label: 'Gain 24h' },
-    { id: 'market_value_total_change', numeric: false, disablePadding: false, label: 'Gain total' },
+    { id: 'logo', numeric: false, disablePadding: false, label: '', width: '4%' },
+    { id: 'symbol', numeric: false, disablePadding: false, label: 'Symbol', width: '5%' },
+    { id: 'name', numeric: false, disablePadding: false, label: 'Name', width: '13%' },
+    { id: 'units', numeric: false, disablePadding: false, label: 'Units', width: '13%' },
+    { id: 'ticker_price', numeric: false, disablePadding: false, label: 'Price', width: '13%' },
+    { id: 'ticker_twenty_four_change', numeric: false, disablePadding: false, label: 'Price 24h', width: '13%' },
+    { id: 'market_value', numeric: false, disablePadding: false, label: 'Market value', width: '13%' },
+    { id: 'market_value_twenty_four_change', numeric: false, disablePadding: false, label: 'Gain 24h', width: '13%' },
+    { id: 'market_value_total_change', numeric: false, disablePadding: false, label: 'Gain total', width: '13%' },
 ];
 
 

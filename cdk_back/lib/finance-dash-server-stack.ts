@@ -8,6 +8,7 @@ import { CustomResource } from '@aws-cdk/core';
 import { Provider } from '@aws-cdk/custom-resources';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
+import * as iam from '@aws-cdk/aws-iam';
 
 export class FinanceDashServerStack extends Stack {
     constructor(scope: App, id: string, props?: StackProps) {
@@ -204,6 +205,35 @@ export class FinanceDashServerStack extends Stack {
             architecture: Architecture.ARM_64,
         });
 
+        const exportPortfolioFunction = new Function(this, 'ExportPortfolioFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/export-portfolio'),
+            timeout: Duration.minutes(1),
+            environment: {
+                'PGUSER': postgresDB.secret?.secretValueFromJson('username').toString()!,
+                'PGHOST': postgresDB.secret?.secretValueFromJson('host').toString()!,
+                'PGPASSWORD': postgresDB.secret?.secretValueFromJson('password').toString()!,
+                'PGDATABASE': 'financedashdb',
+                'PGPORT': '5432',
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
+        const importPortfolioFunction = new Function(this, 'ImportPortfolioFunction', {
+            runtime: Runtime.NODEJS_14_X,
+            handler: 'app.handler',
+            code: Code.fromAsset('lambdas/import-portfolio'),
+            timeout: Duration.minutes(5),
+            environment: {
+                'CreateHoldingFunctionName': createHoldingFunction.functionName,
+                'CreateTransactionFunctionName': createTransactionFunction.functionName,
+            },
+            logRetention: RetentionDays.ONE_WEEK,
+            architecture: Architecture.ARM_64,
+        });
+
         const createTickerPricesCronTarget = new LambdaFunction(createTickerPricesCronFunction)
 
         new Rule(this, 'CreateTickerPricesCronRule', {
@@ -214,8 +244,27 @@ export class FinanceDashServerStack extends Stack {
         const dbInitProvider = new Provider(this, 'DBInitProvider', {
             onEventHandler: initDBFunction,
             logRetention: RetentionDays.ONE_WEEK,
+        });
+        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken });
+
+        const createHoldingPolicy = new iam.PolicyStatement({
+            actions: ["lambda:InvokeFunction"],
+            resources: [createHoldingFunction.functionArn],
+        });
+
+        const createTransactionPolicy = new iam.PolicyStatement({
+            actions: ["lambda:InvokeFunction"],
+            resources: [createTransactionFunction.functionArn],
         })
-        new CustomResource(this, 'DBInitResource', { serviceToken: dbInitProvider.serviceToken })
+
+        const importPortfolioAccessPolicy = new iam.Policy(this, 'ImportPortfolioAccessPolicy', {
+            statements: [
+                createHoldingPolicy,
+                createTransactionPolicy,
+            ],
+        });
+
+        importPortfolioFunction.role?.attachInlinePolicy(importPortfolioAccessPolicy);
 
         const createHoldingIntegration = new LambdaIntegration(createHoldingFunction);
         const listHoldingsIntegration = new LambdaIntegration(listHoldingsFunction);
@@ -224,6 +273,8 @@ export class FinanceDashServerStack extends Stack {
         const getPortfolioFullIntegration = new LambdaIntegration(getPortfolioFullFunction);
         const deleteTransactionsIntegration = new LambdaIntegration(deleteTransactionsFunction);
         const deleteHoldingsIntegration = new LambdaIntegration(deleteHoldingsFunction);
+        const exportPortfolioIntegration = new LambdaIntegration(exportPortfolioFunction);
+        const importPortfolioIntegration = new LambdaIntegration(importPortfolioFunction);
 
         const api = new RestApi(this, 'FinanceDashAPI', {
             restApiName: 'Finance Dash Service',
@@ -249,5 +300,9 @@ export class FinanceDashServerStack extends Stack {
 
         const portfolioApiResource = api.root.addResource('portfolio');
         portfolioApiResource.addMethod('GET', getPortfolioFullIntegration);
+        const portfolioExportAR = portfolioApiResource.addResource('export');
+        portfolioExportAR.addMethod('GET', exportPortfolioIntegration);
+        const portfolioImportAR = portfolioApiResource.addResource('import');
+        portfolioImportAR.addMethod('POST', importPortfolioIntegration);
     }
 }
