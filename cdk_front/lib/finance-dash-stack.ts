@@ -43,6 +43,7 @@ export class FinanceDashStack extends Stack {
                 deviceOnlyRememberedOnUserPrompt: false,
             },
             enableSmsRole: false,
+            removalPolicy: RemovalPolicy.DESTROY,
         });
 
         const userPoolClient = userPool.addClient('UserPoolClient', {
